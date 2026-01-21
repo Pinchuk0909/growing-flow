@@ -33,7 +33,6 @@
     overflow:hidden;
   }
 
-  /* ХЕДЕР: заголовок і логотип в один ряд */
   .topbar{
     display:flex;
     align-items:center;
@@ -110,6 +109,28 @@
     margin:0 0 6px;
   }
 
+  /* input with suffix */
+  .field{
+    position:relative;
+  }
+  .suffix{
+    position:absolute;
+    right:12px;
+    top:50%;
+    transform:translateY(-50%);
+    font-weight:900;
+    font-size:12px;
+    color:var(--black);
+    background:var(--white);
+    padding:2px 6px;
+    border-radius:8px;
+    border:1px solid var(--black);
+    pointer-events:none;
+  }
+  .field input{
+    padding-right:70px;
+  }
+
   input, button{
     width:100%;
     padding:12px 12px;
@@ -123,6 +144,8 @@
   }
 
   input:focus{ border-color:var(--red); }
+
+  input[readonly]{ background:var(--white); }
 
   .btn{
     background:var(--red);
@@ -193,14 +216,12 @@
     font-weight:900;
     color:var(--red);
     font-family: monospace;
-    white-space:normal;
   }
   .kpi .s{
     margin-top:6px;
     font-size:12px;
     font-weight:700;
     font-family: monospace;
-    white-space:normal;
   }
 
   .tableWrap{
@@ -264,6 +285,18 @@
     flex:0 0 auto;
   }
   .xBtn:hover{ background:var(--red); color:var(--white); }
+
+  .modeBadge{
+    display:inline-block;
+    font-weight:900;
+    font-size:12px;
+    padding:6px 10px;
+    border:2px solid var(--black);
+    border-radius:999px;
+    background:var(--white);
+    margin-left:8px;
+  }
+  .modeBadge.manual{ border-color:var(--red); color:var(--red); }
 </style>
 </head>
 
@@ -283,9 +316,10 @@
     </div>
 
     <div class="grid3">
-      <div>
-        <label>Deposit (USDT)</label>
+      <div class="field">
+        <label>Deposit</label>
         <input id="amount" type="text" inputmode="decimal" value="1000" />
+        <span class="suffix" id="depositSuffix">USDT</span>
       </div>
       <div>
         <label>Deposit date</label>
@@ -298,35 +332,41 @@
     </div>
 
     <div class="box" style="margin-top:14px;">
-      <div class="boxTitle">ECR boost</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div class="boxTitle" style="margin:0;">ECR boost</div>
+        <div id="modeBadge" class="modeBadge">AUTO</div>
+      </div>
 
-      <div class="grid3">
-        <div>
-          <label>ECR rate (₮)</label>
+      <div class="grid3" style="margin-top:10px;">
+        <div class="field">
+          <label>ECR rate</label>
           <input id="ecrRate" type="text" inputmode="decimal" value="816.80" />
+          <span class="suffix">₮</span>
         </div>
-        <div>
+        <div class="field">
           <label>Flow multiplier</label>
-          <!-- ТЕПЕР РЕДАГУЄТЬСЯ -->
-          <input id="boostPct" type="text" inputmode="decimal" value="150%" />
+          <!-- numeric only (e.g. 150) -->
+          <input id="boostPct" type="text" inputmode="decimal" value="150" />
+          <span class="suffix">%</span>
         </div>
-        <div>
+        <div class="field">
           <label>Flow opens on</label>
-          <!-- ТЕПЕР РЕДАГУЄТЬСЯ -->
-          <input id="boostedAmount" type="text" inputmode="decimal" value="0" />
+          <!-- numeric only (e.g. 1500) -->
+          <input id="boostedAmount" type="text" inputmode="decimal" value="1500" />
+          <span class="suffix" id="flowSuffix">USDT</span>
         </div>
       </div>
 
       <div class="grid3" style="margin-top:12px;">
-        <div>
-          <label>Extra needed (₮)</label>
-          <!-- ТЕПЕР РЕДАГУЄТЬСЯ -->
-          <input id="extraFiat" type="text" inputmode="decimal" value="0" />
+        <div class="field">
+          <label>Extra needed</label>
+          <input id="extraFiat" type="text" inputmode="decimal" value="500" />
+          <span class="suffix">₮</span>
         </div>
-        <div>
+        <div class="field">
           <label>ECR required</label>
-          <!-- ТЕПЕР РЕДАГУЄТЬСЯ -->
-          <input id="ecrNeeded" type="text" inputmode="decimal" value="0" />
+          <input id="ecrNeeded" type="text" inputmode="decimal" value="0.61214496" />
+          <span class="suffix">ECR</span>
         </div>
         <div>
           <label>Status</label>
@@ -357,13 +397,15 @@
       <div class="box">
         <div class="boxTitle">Rates</div>
         <div class="grid2">
-          <div>
-            <label>Start rate %</label>
+          <div class="field">
+            <label>Start rate</label>
             <input id="startRate" type="text" inputmode="decimal" value="0.30" />
+            <span class="suffix">%</span>
           </div>
-          <div>
-            <label>Daily bonus %</label>
+          <div class="field">
+            <label>Daily bonus</label>
             <input id="rateStep" type="text" inputmode="decimal" value="0.01" />
+            <span class="suffix">%</span>
           </div>
         </div>
 
@@ -448,14 +490,10 @@
     return new Date(y, (m||1)-1, dd||1);
   }
 
-  // allow comma or dot, allow "150%" and "1,500 USDT" formats
+  // parse numeric, tolerate comma, ignore spaces
   function toNum(raw){
     const s = String(raw ?? "").trim()
-      .replaceAll("₮","")
-      .replaceAll("USDT","")
-      .replaceAll("ECR","")
-      .replaceAll("%","")
-      .replaceAll(" ","")
+      .replaceAll(" ", "")
       .replaceAll(",", ".");
     const n = Number(s);
     return isFinite(n) ? n : 0;
@@ -538,21 +576,25 @@
     calculate();
   });
 
-  // ECR override mode
-  let ecrMode = "auto"; // "auto" | "manual"
-  function setManual(){ ecrMode="manual"; }
-  function setAuto(){ ecrMode="auto"; }
+  // ECR mode
+  let ecrMode = "auto"; // auto | manual
+  const modeBadge = document.getElementById("modeBadge");
+  function setMode(m){
+    ecrMode = m;
+    modeBadge.textContent = (m === "manual") ? "MANUAL" : "AUTO";
+    modeBadge.classList.toggle("manual", m === "manual");
+  }
 
   document.getElementById("resetAutoBtn").addEventListener("click", () => {
-    setAuto();
+    setMode("auto");
     calculate();
   });
 
-  // manual triggers
+  // manual triggers (do not format value on input)
   ["boostPct","boostedAmount","extraFiat","ecrNeeded"].forEach(id=>{
     document.getElementById(id).addEventListener("input", ()=>{
-      setManual();
-      calculate();
+      setMode("manual");
+      calculate(false); // no "writeback formatting" while typing
     });
   });
 
@@ -674,8 +716,12 @@
     calculate();
   }
 
-  function calculate(){
+  // if writeback=true we sync values cleanly (safe on blur / calculate button)
+  function calculate(writeback=true){
     const currency = (document.getElementById("currency").value || "USDT").trim();
+    document.getElementById("depositSuffix").textContent = currency;
+    document.getElementById("flowSuffix").textContent = currency;
+
     const baseDeposit = toNum(document.getElementById("amount").value);
     const ecrRate = toNum(document.getElementById("ecrRate").value);
     const dateVal = document.getElementById("depositDate").value;
@@ -687,53 +733,50 @@
     const startNextDay = document.getElementById("startNextDay").checked;
     const withdrawSet = getWithdrawSet();
 
-    // AUTO baseline
-    let boostPctAuto = boostPctFromDeposit(baseDeposit);
-    let flowAmountAuto = baseDeposit * (boostPctAuto/100);
-    let extraAuto = flowAmountAuto - baseDeposit;
-    let ecrNeededAuto = ecrRate>0 ? (extraAuto / ecrRate) : 0;
+    // AUTO
+    const boostAuto = boostPctFromDeposit(baseDeposit);
+    let boostPct = boostAuto;
+    let flowAmount = baseDeposit * (boostPct/100);
+    let extraFiat = Math.max(0, flowAmount - baseDeposit);
+    let ecrNeeded = (ecrRate>0) ? (extraFiat / ecrRate) : 0;
 
-    // MANUAL overrides
-    let boostPct = boostPctAuto;
-    let flowAmount = flowAmountAuto;
-    let extraFiat = extraAuto;
-    let ecrNeeded = ecrNeededAuto;
-
+    // MANUAL
     if(ecrMode === "manual"){
-      const boostPctInput = toNum(document.getElementById("boostPct").value);
-      const flowInput = toNum(document.getElementById("boostedAmount").value);
-      const extraInput = toNum(document.getElementById("extraFiat").value);
-      const ecrInput = toNum(document.getElementById("ecrNeeded").value);
+      const boostIn = toNum(document.getElementById("boostPct").value);
+      const flowIn = toNum(document.getElementById("boostedAmount").value);
+      const extraIn = toNum(document.getElementById("extraFiat").value);
+      const ecrIn = toNum(document.getElementById("ecrNeeded").value);
 
-      // priority: if user filled something, use it
-      if(flowInput > 0){
-        flowAmount = flowInput;
+      if(flowIn > 0){
+        flowAmount = flowIn;
         extraFiat = Math.max(0, flowAmount - baseDeposit);
-        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostPctAuto;
+        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostAuto;
         ecrNeeded = ecrRate>0 ? (extraFiat/ecrRate) : 0;
-      } else if(extraInput > 0){
-        extraFiat = extraInput;
+      } else if(extraIn > 0){
+        extraFiat = extraIn;
         flowAmount = baseDeposit + extraFiat;
-        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostPctAuto;
+        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostAuto;
         ecrNeeded = ecrRate>0 ? (extraFiat/ecrRate) : 0;
-      } else if(ecrInput > 0){
-        ecrNeeded = ecrInput;
+      } else if(ecrIn > 0){
+        ecrNeeded = ecrIn;
         extraFiat = ecrRate>0 ? (ecrNeeded*ecrRate) : 0;
         flowAmount = baseDeposit + extraFiat;
-        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostPctAuto;
-      } else if(boostPctInput > 0){
-        boostPct = boostPctInput;
+        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostAuto;
+      } else if(boostIn > 0){
+        boostPct = boostIn;
         flowAmount = baseDeposit * (boostPct/100);
         extraFiat = Math.max(0, flowAmount - baseDeposit);
         ecrNeeded = ecrRate>0 ? (extraFiat/ecrRate) : 0;
       }
     }
 
-    // write back fields (even in manual, we keep values consistent)
-    document.getElementById("boostPct").value = fmt(boostPct) + "%";
-    document.getElementById("boostedAmount").value = fmt(flowAmount) + " " + currency;
-    document.getElementById("extraFiat").value = fmt(extraFiat) + " ₮";
-    document.getElementById("ecrNeeded").value = fmt(ecrNeeded) + " ECR";
+    // WRITEBACK ONLY when not typing
+    if(writeback){
+      document.getElementById("boostPct").value = fmt(boostPct);
+      document.getElementById("boostedAmount").value = fmt(flowAmount);
+      document.getElementById("extraFiat").value = fmt(extraFiat);
+      document.getElementById("ecrNeeded").value = fmt(ecrNeeded);
+    }
 
     // schedule
     let result;
@@ -767,7 +810,6 @@
     const sundays = result.rows.filter(x => x.weekday==="Sun").length;
     document.getElementById("kpiDays").textContent = "Paid days: " + result.paidDays + " | Sundays: " + sundays;
 
-    // CSV data
     window.__lastRows = result.rows.map((r,i)=>({
       Day: i+1,
       Date: r.date.toISOString().slice(0,10),
@@ -790,12 +832,12 @@
     withdrawListEl.appendChild(createWithdrawRow(""));
     syncWithdrawMeta();
 
-    setAuto();
+    setMode("auto");
     setTab("7");
-    calculate();
+    calculate(true);
   })();
 
-  document.getElementById("calcBtn").addEventListener("click", calculate);
+  document.getElementById("calcBtn").addEventListener("click", ()=>calculate(true));
   document.getElementById("exportBtn").addEventListener("click", exportCSV);
 
   document.getElementById("tab7").addEventListener("click", ()=>setTab("7"));
@@ -804,9 +846,14 @@
   document.getElementById("tab2m").addEventListener("click", ()=>setTab("2m"));
   document.getElementById("tab6m").addEventListener("click", ()=>setTab("6m"));
 
-  // recalculation triggers
+  // normal inputs recalc (writeback ok)
   ["amount","depositDate","currency","startRate","rateStep","startNextDay","ecrRate"]
-    .forEach(id => document.getElementById(id).addEventListener("input", calculate));
+    .forEach(id => document.getElementById(id).addEventListener("input", ()=>calculate(true)));
+
+  // format on blur (safe)
+  ["boostPct","boostedAmount","extraFiat","ecrNeeded"].forEach(id=>{
+    document.getElementById(id).addEventListener("blur", ()=>calculate(true));
+  });
 </script>
 </body>
 </html>
