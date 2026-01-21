@@ -8,8 +8,8 @@
 <style>
   :root{
     --red:#c00000;
-    --black:#000000;
-    --white:#ffffff;
+    --black:#000;
+    --white:#fff;
   }
   *{ box-sizing:border-box; }
 
@@ -38,38 +38,24 @@
     align-items:center;
     justify-content:space-between;
     gap:16px;
-    flex-wrap:nowrap;
   }
-  .topbar img{
-    height:34px;
-    width:auto;
-    display:block;
-    flex:0 0 auto;
-  }
-
   h1{
     margin:0;
     font-size:34px;
     line-height:1.05;
     color:var(--red);
     font-weight:800;
-    flex:1 1 auto;
-    min-width:0;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
   }
-
-  @media (max-width: 900px){
-    .topbar{ flex-wrap:wrap; }
-    h1{ font-size:28px; white-space:normal; }
+  .topbar img{
+    height:34px;
+    width:auto;
+    display:block;
   }
 
   .note{
     margin:10px 0 14px;
     font-size:13px;
     line-height:1.45;
-    color:var(--black);
   }
 
   .grid3{
@@ -85,6 +71,7 @@
   @media (max-width: 900px){
     .grid3{ grid-template-columns: 1fr; }
     .grid2{ grid-template-columns: 1fr; }
+    h1{ font-size:28px; }
   }
 
   .box{
@@ -109,28 +96,6 @@
     margin:0 0 6px;
   }
 
-  /* input with suffix */
-  .field{
-    position:relative;
-  }
-  .suffix{
-    position:absolute;
-    right:12px;
-    top:50%;
-    transform:translateY(-50%);
-    font-weight:900;
-    font-size:12px;
-    color:var(--black);
-    background:var(--white);
-    padding:2px 6px;
-    border-radius:8px;
-    border:1px solid var(--black);
-    pointer-events:none;
-  }
-  .field input{
-    padding-right:70px;
-  }
-
   input, button{
     width:100%;
     padding:12px 12px;
@@ -142,19 +107,27 @@
     outline:none;
     min-width:0;
   }
-
   input:focus{ border-color:var(--red); }
+  input[readonly]{ opacity:0.85; }
 
-  input[readonly]{ background:var(--white); }
-
-  .btn{
-    background:var(--red);
-    color:var(--white);
-    border-color:var(--black);
-    font-weight:800;
-    cursor:pointer;
+  .field{
+    position:relative;
   }
-  .btn:hover{ filter:brightness(0.95); }
+  .field input{ padding-right:74px; }
+  .suffix{
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+    font-weight:900;
+    font-size:12px;
+    color:var(--black);
+    background:var(--white);
+    padding:2px 8px;
+    border-radius:999px;
+    border:2px solid var(--black);
+    pointer-events:none;
+  }
 
   .rowBtns{
     display:flex;
@@ -162,6 +135,15 @@
     flex-wrap:wrap;
     margin-top:12px;
   }
+
+  .btn{
+    background:var(--red);
+    color:var(--white);
+    border-color:var(--black);
+    font-weight:900;
+    cursor:pointer;
+  }
+  .btn:hover{ filter:brightness(0.95); }
 
   .smallBtn{
     width:auto;
@@ -175,13 +157,30 @@
   }
   .smallBtn.red{ background:var(--red); color:var(--white); }
 
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    font-weight:900;
+    font-size:12px;
+    padding:8px 12px;
+    border:2px solid var(--black);
+    border-radius:999px;
+    background:var(--white);
+    cursor:pointer;
+    user-select:none;
+  }
+  .badge.manual{
+    border-color:var(--red);
+    color:var(--red);
+  }
+
   .tabs{
     display:flex;
     gap:10px;
     margin:14px 0 12px;
     flex-wrap:wrap;
   }
-
   .tab{
     width:auto;
     padding:10px 14px;
@@ -189,7 +188,7 @@
     border-radius:999px;
     background:var(--white);
     color:var(--black);
-    font-weight:800;
+    font-weight:900;
     cursor:pointer;
   }
   .tab.active{ background:var(--red); color:var(--white); }
@@ -209,7 +208,7 @@
     background:var(--white);
     overflow:hidden;
   }
-  .kpi .t{ font-size:12px; font-weight:800; }
+  .kpi .t{ font-size:12px; font-weight:900; }
   .kpi .v{
     margin-top:6px;
     font-size:20px;
@@ -220,7 +219,7 @@
   .kpi .s{
     margin-top:6px;
     font-size:12px;
-    font-weight:700;
+    font-weight:800;
     font-family: monospace;
   }
 
@@ -232,7 +231,6 @@
     max-height:520px;
     background:var(--white);
   }
-
   table{
     width:100%;
     border-collapse:collapse;
@@ -269,7 +267,6 @@
     display:flex;
     gap:8px;
     align-items:center;
-    min-width:0;
   }
   .withdrawItem input{ flex:1; }
 
@@ -286,17 +283,15 @@
   }
   .xBtn:hover{ background:var(--red); color:var(--white); }
 
-  .modeBadge{
-    display:inline-block;
+  .error{
+    margin-top:10px;
+    padding:10px 12px;
+    border:2px solid var(--red);
+    border-radius:12px;
+    color:var(--red);
     font-weight:900;
-    font-size:12px;
-    padding:6px 10px;
-    border:2px solid var(--black);
-    border-radius:999px;
-    background:var(--white);
-    margin-left:8px;
+    display:none;
   }
-  .modeBadge.manual{ border-color:var(--red); color:var(--red); }
 </style>
 </head>
 
@@ -321,10 +316,12 @@
         <input id="amount" type="text" inputmode="decimal" value="1000" />
         <span class="suffix" id="depositSuffix">USDT</span>
       </div>
+
       <div>
         <label>Deposit date</label>
         <input id="depositDate" type="date" />
       </div>
+
       <div>
         <label>Currency</label>
         <input id="currency" type="text" value="USDT" />
@@ -334,7 +331,11 @@
     <div class="box" style="margin-top:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
         <div class="boxTitle" style="margin:0;">ECR boost</div>
-        <div id="modeBadge" class="modeBadge">AUTO</div>
+
+        <div id="modeToggle" class="badge" role="button" tabindex="0">
+          <span>MODE</span>
+          <span id="modeText">AUTO</span>
+        </div>
       </div>
 
       <div class="grid3" style="margin-top:10px;">
@@ -343,15 +344,15 @@
           <input id="ecrRate" type="text" inputmode="decimal" value="816.80" />
           <span class="suffix">₮</span>
         </div>
+
         <div class="field">
           <label>Flow multiplier</label>
-          <!-- numeric only (e.g. 150) -->
           <input id="boostPct" type="text" inputmode="decimal" value="150" />
           <span class="suffix">%</span>
         </div>
+
         <div class="field">
           <label>Flow opens on</label>
-          <!-- numeric only (e.g. 1500) -->
           <input id="boostedAmount" type="text" inputmode="decimal" value="1500" />
           <span class="suffix" id="flowSuffix">USDT</span>
         </div>
@@ -363,11 +364,13 @@
           <input id="extraFiat" type="text" inputmode="decimal" value="500" />
           <span class="suffix">₮</span>
         </div>
+
         <div class="field">
           <label>ECR required</label>
           <input id="ecrNeeded" type="text" inputmode="decimal" value="0.61214496" />
           <span class="suffix">ECR</span>
         </div>
+
         <div>
           <label>Status</label>
           <input id="ecrNote" type="text" readonly value="ECR = extra / rate" />
@@ -377,12 +380,14 @@
       <div class="rowBtns">
         <button class="smallBtn" id="resetAutoBtn" type="button">Reset auto</button>
       </div>
+
+      <div class="error" id="errBox"></div>
     </div>
 
     <div class="grid2" style="margin-top:14px;">
       <div class="box">
         <div class="boxTitle">Withdraw dates</div>
-        <div style="font-size:13px;font-weight:700;">
+        <div style="font-size:13px;font-weight:800;">
           Add up to 10 dates. Each date withdraws wallet and resets +0.01% progress.
         </div>
 
@@ -410,7 +415,7 @@
         </div>
 
         <div style="margin-top:12px;">
-          <label style="display:flex;align-items:center;gap:10px;">
+          <label style="display:flex;align-items:center;gap:10px;font-weight:900;">
             <input id="startNextDay" type="checkbox" checked style="width:auto;margin:0;" />
             Start accrual from next day after deposit
           </label>
@@ -426,27 +431,27 @@
     <div class="summary" id="kpiWrap" style="display:none;">
       <div class="kpi">
         <div class="t">Opened flow amount</div>
-        <div class="v" id="kpiDeposit">0</div>
-        <div class="s" id="kpiMeta">0</div>
+        <div class="v" id="kpiFlow">0</div>
+        <div class="s" id="kpiMode">Mode: AUTO</div>
       </div>
       <div class="kpi">
         <div class="t">Wallet now / Withdrawn</div>
         <div class="v" id="kpiWallet">0</div>
-        <div class="s" id="kpiWithdrawn">0</div>
+        <div class="s" id="kpiWithdrawn">Withdrawn: 0</div>
       </div>
       <div class="kpi">
         <div class="t">Total accrued rewards</div>
         <div class="v" id="kpiAccrued">0</div>
-        <div class="s" id="kpiDays">0</div>
+        <div class="s" id="kpiDays">Paid days: 0</div>
       </div>
     </div>
 
     <div class="tabs">
-      <button class="tab active" id="tab7" type="button">7 days</button>
-      <button class="tab" id="tab15" type="button">15 days</button>
-      <button class="tab" id="tab30" type="button">30 days</button>
-      <button class="tab" id="tab2m" type="button">2 months</button>
-      <button class="tab" id="tab6m" type="button">6 months</button>
+      <button class="tab active" data-tab="7" type="button">7 days</button>
+      <button class="tab" data-tab="15" type="button">15 days</button>
+      <button class="tab" data-tab="30" type="button">30 days</button>
+      <button class="tab" data-tab="2m" type="button">2 months</button>
+      <button class="tab" data-tab="6m" type="button">6 months</button>
     </div>
 
     <div class="tableWrap">
@@ -471,13 +476,31 @@
 </div>
 
 <script>
-  function fmt(n){
-    if(!isFinite(n)) return "0";
-    return new Intl.NumberFormat("en-US",{maximumFractionDigits:8}).format(n);
+  // ---------- helpers ----------
+  const $ = (id)=>document.getElementById(id);
+
+  function toNum(raw){
+    const s = String(raw ?? "")
+      .trim()
+      .replaceAll(" ", "")
+      .replaceAll(",", ".");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
   }
-  function fmtMoney(n, ccy){ return fmt(n) + " " + ccy; }
+
+  function fmt(n, digits=8){
+    if(!Number.isFinite(n)) return "";
+    return new Intl.NumberFormat("en-US",{maximumFractionDigits:digits}).format(n);
+  }
+
+  function fmtMoney(n, ccy){
+    if(!Number.isFinite(n)) return "0 " + ccy;
+    return fmt(n, 8) + " " + ccy;
+  }
+
   function weekdayName(d){ return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]; }
   function addDays(date, days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
+
   function addMonths(date, months){
     const d=new Date(date);
     const day=d.getDate();
@@ -485,20 +508,14 @@
     if(d.getDate()<day) d.setDate(0);
     return d;
   }
+
   function parseDateInput(value){
     const [y,m,dd] = String(value||"").split("-").map(Number);
-    return new Date(y, (m||1)-1, dd||1);
+    if(!y || !m || !dd) return null;
+    return new Date(y, (m-1), dd);
   }
 
-  // parse numeric, tolerate comma, ignore spaces
-  function toNum(raw){
-    const s = String(raw ?? "").trim()
-      .replaceAll(" ", "")
-      .replaceAll(",", ".");
-    const n = Number(s);
-    return isFinite(n) ? n : 0;
-  }
-
+  // tiers: deposit -> flow percent
   function boostPctFromDeposit(amount){
     const tiers = [
       { min:100, pct:130 },
@@ -521,10 +538,14 @@
     return pct;
   }
 
-  // Withdraw dates UI (up to 10)
-  const withdrawListEl = document.getElementById("withdrawList");
-  const addWithdrawBtn = document.getElementById("addWithdrawBtn");
-  const clearWithdrawBtn = document.getElementById("clearWithdrawBtn");
+  // ---------- withdraw dates UI ----------
+  const withdrawListEl = $("withdrawList");
+  const addWithdrawBtn = $("addWithdrawBtn");
+
+  function syncWithdrawMeta(){
+    const count = withdrawListEl.querySelectorAll('input[type="date"]').length;
+    addWithdrawBtn.disabled = count >= 10;
+  }
 
   function createWithdrawRow(value=""){
     const wrap = document.createElement("div");
@@ -540,11 +561,8 @@
     del.textContent = "X";
     del.addEventListener("click", () => {
       wrap.remove();
-      calculate();
       syncWithdrawMeta();
     });
-
-    input.addEventListener("input", () => calculate());
 
     wrap.appendChild(input);
     wrap.appendChild(del);
@@ -557,47 +575,61 @@
     return Array.from(new Set(dates)).sort();
   }
   function getWithdrawSet(){ return new Set(getWithdrawDates()); }
-  function syncWithdrawMeta(){
-    const count = getWithdrawDates().length;
-    addWithdrawBtn.disabled = count >= 10;
-  }
 
-  addWithdrawBtn.addEventListener("click", () => {
+  $("addWithdrawBtn").addEventListener("click", () => {
     const count = withdrawListEl.querySelectorAll('input[type="date"]').length;
     if(count >= 10) return;
     withdrawListEl.appendChild(createWithdrawRow(""));
     syncWithdrawMeta();
   });
 
-  clearWithdrawBtn.addEventListener("click", () => {
+  $("clearWithdrawBtn").addEventListener("click", () => {
     withdrawListEl.innerHTML = "";
     withdrawListEl.appendChild(createWithdrawRow(""));
     syncWithdrawMeta();
-    calculate();
   });
 
-  // ECR mode
-  let ecrMode = "auto"; // auto | manual
-  const modeBadge = document.getElementById("modeBadge");
+  // ---------- mode logic ----------
+  let mode = "auto"; // auto | manual
+  let activeTab = "7";
+
   function setMode(m){
-    ecrMode = m;
-    modeBadge.textContent = (m === "manual") ? "MANUAL" : "AUTO";
-    modeBadge.classList.toggle("manual", m === "manual");
+    mode = m;
+    const badge = $("modeToggle");
+    const text = $("modeText");
+    text.textContent = (m === "manual") ? "MANUAL" : "AUTO";
+    badge.classList.toggle("manual", m === "manual");
+
+    // In AUTO: lock manual inputs to avoid fighting with user typing
+    const manualFields = ["boostPct","boostedAmount","extraFiat","ecrNeeded"];
+    manualFields.forEach(id => {
+      $(id).readOnly = (m === "auto");
+    });
   }
 
-  document.getElementById("resetAutoBtn").addEventListener("click", () => {
+  $("modeToggle").addEventListener("click", () => {
+    setMode(mode === "auto" ? "manual" : "auto");
+  });
+
+  $("resetAutoBtn").addEventListener("click", () => {
     setMode("auto");
-    calculate();
+    // when reset auto, also rewrite boost fields based on tiers for current deposit
+    const dep = toNum($("amount").value);
+    if(Number.isFinite(dep)){
+      const pct = boostPctFromDeposit(dep);
+      const flow = dep * (pct/100);
+      const extra = Math.max(0, flow - dep);
+      const rate = toNum($("ecrRate").value);
+      const ecr = (Number.isFinite(rate) && rate>0) ? (extra / rate) : 0;
+
+      $("boostPct").value = fmt(pct, 8);
+      $("boostedAmount").value = fmt(flow, 8);
+      $("extraFiat").value = fmt(extra, 8);
+      $("ecrNeeded").value = fmt(ecr, 8);
+    }
   });
 
-  // manual triggers (do not format value on input)
-  ["boostPct","boostedAmount","extraFiat","ecrNeeded"].forEach(id=>{
-    document.getElementById(id).addEventListener("input", ()=>{
-      setMode("manual");
-      calculate(false); // no "writeback formatting" while typing
-    });
-  });
-
+  // ---------- schedule ----------
   function buildSchedule({
     flowAmount,
     depositDate,
@@ -605,18 +637,10 @@
     rateStepPct,
     startNextDay,
     withdrawSet,
-    horizonDays,
-    horizonEndDate
+    endExclusive
   }){
     const rows=[];
     const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
-
-    let endExclusive;
-    if(typeof horizonDays === "number"){
-      endExclusive = addDays(startDate, horizonDays);
-    } else {
-      endExclusive = addDays(horizonEndDate, 1);
-    }
 
     let rateIndex=1;
     let wallet=0;
@@ -663,7 +687,7 @@
   }
 
   function renderTable(rows, currency){
-    const tbody = document.getElementById("tbody");
+    const tbody = $("tbody");
     tbody.innerHTML = "";
     rows.forEach((r, idx) => {
       const tr = document.createElement("tr");
@@ -672,7 +696,7 @@
         <td>${idx+1}</td>
         <td>${dateStr}</td>
         <td>${r.weekday}</td>
-        <td>${r.ratePct ? (fmt(r.ratePct) + "%") : ""}</td>
+        <td>${r.ratePct ? (fmt(r.ratePct, 8) + "%") : ""}</td>
         <td>${fmtMoney(r.reward, currency)}</td>
         <td>${fmtMoney(r.flowAmount, currency)}</td>
         <td>${fmtMoney(r.walletEnd, currency)}</td>
@@ -680,6 +704,155 @@
       `;
       tbody.appendChild(tr);
     });
+  }
+
+  // ---------- calc core ----------
+  function showErr(msg){
+    const box = $("errBox");
+    if(!msg){
+      box.style.display="none";
+      box.textContent="";
+      return;
+    }
+    box.style.display="block";
+    box.textContent=msg;
+  }
+
+  function calculate(){
+    showErr("");
+
+    const currency = ($("currency").value || "USDT").trim();
+    $("depositSuffix").textContent = currency;
+    $("flowSuffix").textContent = currency;
+
+    const dep = toNum($("amount").value);
+    if(!Number.isFinite(dep) || dep <= 0){
+      showErr("Deposit must be a positive number");
+      return;
+    }
+
+    const dateVal = $("depositDate").value;
+    const depositDate = parseDateInput(dateVal);
+    if(!depositDate){
+      showErr("Deposit date is required");
+      return;
+    }
+
+    const ecrRate = toNum($("ecrRate").value);
+    if(!Number.isFinite(ecrRate) || ecrRate <= 0){
+      showErr("ECR rate must be a positive number");
+      return;
+    }
+
+    const startRatePct = toNum($("startRate").value);
+    const rateStepPct = toNum($("rateStep").value);
+    if(!Number.isFinite(startRatePct) || startRatePct <= 0){
+      showErr("Start rate must be a positive number");
+      return;
+    }
+    if(!Number.isFinite(rateStepPct) || rateStepPct < 0){
+      showErr("Daily bonus must be 0 or positive");
+      return;
+    }
+
+    const startNextDay = $("startNextDay").checked;
+    const withdrawSet = getWithdrawSet();
+
+    // Determine flow amount based on mode
+    let boostPct, flowAmount, extraFiat, ecrNeeded;
+
+    if(mode === "auto"){
+      boostPct = boostPctFromDeposit(dep);
+      flowAmount = dep * (boostPct/100);
+      extraFiat = Math.max(0, flowAmount - dep);
+      ecrNeeded = extraFiat / ecrRate;
+
+      // write into fields (safe because they are readonly in AUTO)
+      $("boostPct").value = fmt(boostPct, 8);
+      $("boostedAmount").value = fmt(flowAmount, 8);
+      $("extraFiat").value = fmt(extraFiat, 8);
+      $("ecrNeeded").value = fmt(ecrNeeded, 8);
+    } else {
+      // MANUAL: take what user typed and compute consistency
+      boostPct = toNum($("boostPct").value);
+      flowAmount = toNum($("boostedAmount").value);
+      extraFiat = toNum($("extraFiat").value);
+      ecrNeeded = toNum($("ecrNeeded").value);
+
+      // choose a base rule:
+      // priority: Flow opens on (if valid) -> Extra needed (if valid) -> ECR required (if valid) -> Flow multiplier (if valid)
+      if(Number.isFinite(flowAmount) && flowAmount > 0){
+        extraFiat = Math.max(0, flowAmount - dep);
+        boostPct = (dep > 0) ? (flowAmount / dep * 100) : boostPct;
+        ecrNeeded = extraFiat / ecrRate;
+      } else if(Number.isFinite(extraFiat) && extraFiat >= 0){
+        flowAmount = dep + extraFiat;
+        boostPct = (dep > 0) ? (flowAmount / dep * 100) : boostPct;
+        ecrNeeded = extraFiat / ecrRate;
+      } else if(Number.isFinite(ecrNeeded) && ecrNeeded >= 0){
+        extraFiat = ecrNeeded * ecrRate;
+        flowAmount = dep + extraFiat;
+        boostPct = (dep > 0) ? (flowAmount / dep * 100) : boostPct;
+      } else if(Number.isFinite(boostPct) && boostPct > 0){
+        flowAmount = dep * (boostPct/100);
+        extraFiat = Math.max(0, flowAmount - dep);
+        ecrNeeded = extraFiat / ecrRate;
+      } else {
+        showErr("In MANUAL mode enter at least one of: Flow opens on, Extra needed, ECR required, or Flow multiplier");
+        return;
+      }
+
+      // normalize display after Calculate (not during typing)
+      $("boostPct").value = fmt(boostPct, 8);
+      $("boostedAmount").value = fmt(flowAmount, 8);
+      $("extraFiat").value = fmt(extraFiat, 8);
+      $("ecrNeeded").value = fmt(ecrNeeded, 8);
+    }
+
+    // horizon
+    let endExclusive;
+    const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
+
+    if(activeTab === "7") endExclusive = addDays(startDate, 7);
+    if(activeTab === "15") endExclusive = addDays(startDate, 15);
+    if(activeTab === "30") endExclusive = addDays(startDate, 30);
+    if(activeTab === "2m") endExclusive = addDays(addMonths(startDate, 2), 0);
+    if(activeTab === "6m") endExclusive = addDays(addMonths(startDate, 6), 0);
+
+    const result = buildSchedule({
+      flowAmount,
+      depositDate,
+      startRatePct,
+      rateStepPct,
+      startNextDay,
+      withdrawSet,
+      endExclusive
+    });
+
+    renderTable(result.rows, currency);
+
+    // KPI
+    $("kpiWrap").style.display = "grid";
+    $("kpiFlow").textContent = fmtMoney(flowAmount, currency);
+    $("kpiMode").textContent = "Mode: " + mode.toUpperCase() + " | Withdraw dates: " + getWithdrawDates().length + "/10";
+    $("kpiWallet").textContent = fmtMoney(result.walletEnd, currency);
+    $("kpiWithdrawn").textContent = "Withdrawn: " + fmtMoney(result.totalWithdrawn, currency);
+    $("kpiAccrued").textContent = fmtMoney(result.totalAccrued, currency);
+    $("kpiDays").textContent = "Paid days: " + result.paidDays;
+
+    // CSV cache
+    window.__lastRows = result.rows.map((r,i)=>({
+      Day: i+1,
+      Date: r.date.toISOString().slice(0,10),
+      Weekday: r.weekday,
+      RatePct: r.ratePct,
+      Reward: r.reward,
+      FlowAmount: r.flowAmount,
+      WalletEnd: r.walletEnd,
+      Note: r.note
+    }));
+
+    syncWithdrawMeta();
   }
 
   function exportCSV(){
@@ -707,152 +880,45 @@
     URL.revokeObjectURL(url);
   }
 
-  let activeTab="7";
-  function setTab(tab){
-    activeTab=tab;
-    ["7","15","30","2m","6m"].forEach(t=>{
-      document.getElementById("tab"+t).classList.toggle("active", t===tab);
+  // ---------- tabs ----------
+  document.querySelectorAll(".tab").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      activeTab = btn.dataset.tab;
+      // do not auto recalc while typing, only when user clicks calculate
     });
-    calculate();
-  }
+  });
 
-  // if writeback=true we sync values cleanly (safe on blur / calculate button)
-  function calculate(writeback=true){
-    const currency = (document.getElementById("currency").value || "USDT").trim();
-    document.getElementById("depositSuffix").textContent = currency;
-    document.getElementById("flowSuffix").textContent = currency;
-
-    const baseDeposit = toNum(document.getElementById("amount").value);
-    const ecrRate = toNum(document.getElementById("ecrRate").value);
-    const dateVal = document.getElementById("depositDate").value;
-    if(!dateVal) return;
-
-    const depositDate = parseDateInput(dateVal);
-    const startRatePct = toNum(document.getElementById("startRate").value) || 0.3;
-    const rateStepPct = toNum(document.getElementById("rateStep").value) || 0.01;
-    const startNextDay = document.getElementById("startNextDay").checked;
-    const withdrawSet = getWithdrawSet();
-
-    // AUTO
-    const boostAuto = boostPctFromDeposit(baseDeposit);
-    let boostPct = boostAuto;
-    let flowAmount = baseDeposit * (boostPct/100);
-    let extraFiat = Math.max(0, flowAmount - baseDeposit);
-    let ecrNeeded = (ecrRate>0) ? (extraFiat / ecrRate) : 0;
-
-    // MANUAL
-    if(ecrMode === "manual"){
-      const boostIn = toNum(document.getElementById("boostPct").value);
-      const flowIn = toNum(document.getElementById("boostedAmount").value);
-      const extraIn = toNum(document.getElementById("extraFiat").value);
-      const ecrIn = toNum(document.getElementById("ecrNeeded").value);
-
-      if(flowIn > 0){
-        flowAmount = flowIn;
-        extraFiat = Math.max(0, flowAmount - baseDeposit);
-        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostAuto;
-        ecrNeeded = ecrRate>0 ? (extraFiat/ecrRate) : 0;
-      } else if(extraIn > 0){
-        extraFiat = extraIn;
-        flowAmount = baseDeposit + extraFiat;
-        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostAuto;
-        ecrNeeded = ecrRate>0 ? (extraFiat/ecrRate) : 0;
-      } else if(ecrIn > 0){
-        ecrNeeded = ecrIn;
-        extraFiat = ecrRate>0 ? (ecrNeeded*ecrRate) : 0;
-        flowAmount = baseDeposit + extraFiat;
-        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostAuto;
-      } else if(boostIn > 0){
-        boostPct = boostIn;
-        flowAmount = baseDeposit * (boostPct/100);
-        extraFiat = Math.max(0, flowAmount - baseDeposit);
-        ecrNeeded = ecrRate>0 ? (extraFiat/ecrRate) : 0;
-      }
-    }
-
-    // WRITEBACK ONLY when not typing
-    if(writeback){
-      document.getElementById("boostPct").value = fmt(boostPct);
-      document.getElementById("boostedAmount").value = fmt(flowAmount);
-      document.getElementById("extraFiat").value = fmt(extraFiat);
-      document.getElementById("ecrNeeded").value = fmt(ecrNeeded);
-    }
-
-    // schedule
-    let result;
-    if(activeTab === "7"){
-      result = buildSchedule({ flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet, horizonDays: 7 });
-    } else if(activeTab === "15"){
-      result = buildSchedule({ flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet, horizonDays: 15 });
-    } else if(activeTab === "30"){
-      result = buildSchedule({ flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet, horizonDays: 30 });
-    } else if(activeTab === "2m"){
-      const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
-      const endDate = addMonths(startDate, 2);
-      result = buildSchedule({ flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet, horizonEndDate: endDate });
-    } else {
-      const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
-      const endDate = addMonths(startDate, 6);
-      result = buildSchedule({ flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet, horizonEndDate: endDate });
-    }
-
-    renderTable(result.rows, currency);
-
-    // KPI
-    const kpiWrap = document.getElementById("kpiWrap");
-    kpiWrap.style.display = "grid";
-    document.getElementById("kpiDeposit").textContent = fmtMoney(flowAmount, currency);
-    document.getElementById("kpiMeta").textContent = "Mode: " + (ecrMode==="manual" ? "manual" : "auto") + " | Withdraw dates: " + getWithdrawDates().length + "/10";
-    document.getElementById("kpiWallet").textContent = fmtMoney(result.walletEnd, currency);
-    document.getElementById("kpiWithdrawn").textContent = "Withdrawn: " + fmtMoney(result.totalWithdrawn, currency);
-    document.getElementById("kpiAccrued").textContent = fmtMoney(result.totalAccrued, currency);
-
-    const sundays = result.rows.filter(x => x.weekday==="Sun").length;
-    document.getElementById("kpiDays").textContent = "Paid days: " + result.paidDays + " | Sundays: " + sundays;
-
-    window.__lastRows = result.rows.map((r,i)=>({
-      Day: i+1,
-      Date: r.date.toISOString().slice(0,10),
-      Weekday: r.weekday,
-      RatePct: r.ratePct,
-      Reward: r.reward,
-      FlowAmount: r.flowAmount,
-      WalletEnd: r.walletEnd,
-      Note: r.note
-    }));
-
-    syncWithdrawMeta();
-  }
-
+  // ---------- init ----------
   (function init(){
     const now = new Date();
-    document.getElementById("depositDate").value = now.toISOString().slice(0,10);
+    $("depositDate").value = now.toISOString().slice(0,10);
 
     withdrawListEl.innerHTML = "";
     withdrawListEl.appendChild(createWithdrawRow(""));
     syncWithdrawMeta();
 
     setMode("auto");
-    setTab("7");
-    calculate(true);
+    $("resetAutoBtn").click(); // fill auto fields once
   })();
 
-  document.getElementById("calcBtn").addEventListener("click", ()=>calculate(true));
-  document.getElementById("exportBtn").addEventListener("click", exportCSV);
+  // Buttons
+  $("calcBtn").addEventListener("click", calculate);
+  $("exportBtn").addEventListener("click", exportCSV);
 
-  document.getElementById("tab7").addEventListener("click", ()=>setTab("7"));
-  document.getElementById("tab15").addEventListener("click", ()=>setTab("15"));
-  document.getElementById("tab30").addEventListener("click", ()=>setTab("30"));
-  document.getElementById("tab2m").addEventListener("click", ()=>setTab("2m"));
-  document.getElementById("tab6m").addEventListener("click", ()=>setTab("6m"));
-
-  // normal inputs recalc (writeback ok)
-  ["amount","depositDate","currency","startRate","rateStep","startNextDay","ecrRate"]
-    .forEach(id => document.getElementById(id).addEventListener("input", ()=>calculate(true)));
-
-  // format on blur (safe)
+  // If user edits manual fields, switch to manual but do not overwrite their typing
   ["boostPct","boostedAmount","extraFiat","ecrNeeded"].forEach(id=>{
-    document.getElementById(id).addEventListener("blur", ()=>calculate(true));
+    $(id).addEventListener("input", ()=>{
+      if(mode !== "manual") setMode("manual");
+    });
+  });
+
+  // Keep suffix updated if currency changes
+  $("currency").addEventListener("input", ()=>{
+    const c = ($("currency").value || "USDT").trim();
+    $("depositSuffix").textContent = c;
+    $("flowSuffix").textContent = c;
   });
 </script>
 </body>
