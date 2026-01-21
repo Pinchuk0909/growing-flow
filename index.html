@@ -96,7 +96,7 @@
     margin:0 0 6px;
   }
 
-  input, button{
+  input, select, button{
     width:100%;
     padding:12px 12px;
     border:2px solid var(--black);
@@ -107,8 +107,8 @@
     outline:none;
     min-width:0;
   }
-  input:focus{ border-color:var(--red); }
-  input[readonly]{ opacity:0.85; }
+  input:focus, select:focus{ border-color:var(--red); }
+  input[readonly], select:disabled{ opacity:0.85; }
 
   .field{
     position:relative;
@@ -156,6 +156,13 @@
     cursor:pointer;
   }
   .smallBtn.red{ background:var(--red); color:var(--white); }
+
+  .badgeRow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
 
   .badge{
     display:inline-flex;
@@ -324,7 +331,10 @@
 
       <div>
         <label>Currency</label>
-        <input id="currency" type="text" value="USDT" />
+        <select id="currency">
+          <option value="USDT">USDT</option>
+          <option value="EURO">EURO</option>
+        </select>
       </div>
     </div>
 
@@ -332,9 +342,16 @@
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
         <div class="boxTitle" style="margin:0;">ECR boost</div>
 
-        <div id="modeToggle" class="badge" role="button" tabindex="0">
-          <span>MODE</span>
-          <span id="modeText">AUTO</span>
+        <div class="badgeRow">
+          <div id="modeToggle" class="badge" role="button" tabindex="0">
+            <span>MODE</span>
+            <span id="modeText">AUTO</span>
+          </div>
+
+          <button id="currencyToggle" type="button" class="badge" title="Switch currency">
+            <span>CCY</span>
+            <span id="ccyText">USDT</span>
+          </button>
         </div>
       </div>
 
@@ -476,7 +493,6 @@
 </div>
 
 <script>
-  // ---------- helpers ----------
   const $ = (id)=>document.getElementById(id);
 
   function toNum(raw){
@@ -515,8 +531,8 @@
     return new Date(y, (m-1), dd);
   }
 
-  // tiers: deposit -> flow percent
-  function boostPctFromDeposit(amount){
+  // USDT: pct is full multiplier (130 means 130%)
+  function boostPctFromDepositUSDT(amount){
     const tiers = [
       { min:100, pct:130 },
       { min:500, pct:140 },
@@ -538,7 +554,33 @@
     return pct;
   }
 
-  // ---------- withdraw dates UI ----------
+  // EURO: table is bonuses (+50%, +60%, ...) so multiplier = 100 + bonus
+  function boostPctFromDepositEURO(amount){
+    const tiers = [
+      { min:50, bonus:50 },
+      { min:100, bonus:60 },
+      { min:250, bonus:70 },
+      { min:500, bonus:80 },
+      { min:1000, bonus:100 },
+      { min:2000, bonus:110 },
+      { min:3000, bonus:120 },
+      { min:5000, bonus:130 },
+      { min:10000, bonus:150 },
+    ];
+    let bonus=0;
+    for(const t of tiers){
+      if(amount>=t.min) bonus=t.bonus;
+    }
+    return 100 + bonus; // full multiplier in %
+  }
+
+  function boostPctFromDeposit(amount, currency){
+    return (currency === "EURO")
+      ? boostPctFromDepositEURO(amount)
+      : boostPctFromDepositUSDT(amount);
+  }
+
+  // Withdraw dates UI
   const withdrawListEl = $("withdrawList");
   const addWithdrawBtn = $("addWithdrawBtn");
 
@@ -589,7 +631,7 @@
     syncWithdrawMeta();
   });
 
-  // ---------- mode logic ----------
+  // Mode
   let mode = "auto"; // auto | manual
   let activeTab = "7";
 
@@ -600,7 +642,6 @@
     text.textContent = (m === "manual") ? "MANUAL" : "AUTO";
     badge.classList.toggle("manual", m === "manual");
 
-    // In AUTO: lock manual inputs to avoid fighting with user typing
     const manualFields = ["boostPct","boostedAmount","extraFiat","ecrNeeded"];
     manualFields.forEach(id => {
       $(id).readOnly = (m === "auto");
@@ -611,12 +652,33 @@
     setMode(mode === "auto" ? "manual" : "auto");
   });
 
+  // Currency sync + toggle
+  function setCurrency(ccy){
+    $("currency").value = ccy;
+    $("ccyText").textContent = ccy;
+    $("depositSuffix").textContent = ccy;
+    $("flowSuffix").textContent = ccy;
+  }
+
+  $("currency").addEventListener("change", ()=>{
+    setCurrency($("currency").value);
+    // Keep auto numbers consistent if in AUTO
+    if(mode === "auto") $("resetAutoBtn").click();
+  });
+
+  $("currencyToggle").addEventListener("click", ()=>{
+    const next = ($("currency").value === "USDT") ? "EURO" : "USDT";
+    setCurrency(next);
+    if(mode === "auto") $("resetAutoBtn").click();
+  });
+
   $("resetAutoBtn").addEventListener("click", () => {
     setMode("auto");
-    // when reset auto, also rewrite boost fields based on tiers for current deposit
     const dep = toNum($("amount").value);
+    const ccy = $("currency").value;
+
     if(Number.isFinite(dep)){
-      const pct = boostPctFromDeposit(dep);
+      const pct = boostPctFromDeposit(dep, ccy);
       const flow = dep * (pct/100);
       const extra = Math.max(0, flow - dep);
       const rate = toNum($("ecrRate").value);
@@ -629,7 +691,7 @@
     }
   });
 
-  // ---------- schedule ----------
+  // Schedule builder
   function buildSchedule({
     flowAmount,
     depositDate,
@@ -706,7 +768,6 @@
     });
   }
 
-  // ---------- calc core ----------
   function showErr(msg){
     const box = $("errBox");
     if(!msg){
@@ -721,9 +782,8 @@
   function calculate(){
     showErr("");
 
-    const currency = ($("currency").value || "USDT").trim();
-    $("depositSuffix").textContent = currency;
-    $("flowSuffix").textContent = currency;
+    const currency = $("currency").value;
+    setCurrency(currency);
 
     const dep = toNum($("amount").value);
     if(!Number.isFinite(dep) || dep <= 0){
@@ -758,29 +818,24 @@
     const startNextDay = $("startNextDay").checked;
     const withdrawSet = getWithdrawSet();
 
-    // Determine flow amount based on mode
     let boostPct, flowAmount, extraFiat, ecrNeeded;
 
     if(mode === "auto"){
-      boostPct = boostPctFromDeposit(dep);
+      boostPct = boostPctFromDeposit(dep, currency);
       flowAmount = dep * (boostPct/100);
       extraFiat = Math.max(0, flowAmount - dep);
       ecrNeeded = extraFiat / ecrRate;
 
-      // write into fields (safe because they are readonly in AUTO)
       $("boostPct").value = fmt(boostPct, 8);
       $("boostedAmount").value = fmt(flowAmount, 8);
       $("extraFiat").value = fmt(extraFiat, 8);
       $("ecrNeeded").value = fmt(ecrNeeded, 8);
     } else {
-      // MANUAL: take what user typed and compute consistency
       boostPct = toNum($("boostPct").value);
       flowAmount = toNum($("boostedAmount").value);
       extraFiat = toNum($("extraFiat").value);
       ecrNeeded = toNum($("ecrNeeded").value);
 
-      // choose a base rule:
-      // priority: Flow opens on (if valid) -> Extra needed (if valid) -> ECR required (if valid) -> Flow multiplier (if valid)
       if(Number.isFinite(flowAmount) && flowAmount > 0){
         extraFiat = Math.max(0, flowAmount - dep);
         boostPct = (dep > 0) ? (flowAmount / dep * 100) : boostPct;
@@ -802,22 +857,20 @@
         return;
       }
 
-      // normalize display after Calculate (not during typing)
       $("boostPct").value = fmt(boostPct, 8);
       $("boostedAmount").value = fmt(flowAmount, 8);
       $("extraFiat").value = fmt(extraFiat, 8);
       $("ecrNeeded").value = fmt(ecrNeeded, 8);
     }
 
-    // horizon
     let endExclusive;
     const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
 
     if(activeTab === "7") endExclusive = addDays(startDate, 7);
     if(activeTab === "15") endExclusive = addDays(startDate, 15);
     if(activeTab === "30") endExclusive = addDays(startDate, 30);
-    if(activeTab === "2m") endExclusive = addDays(addMonths(startDate, 2), 0);
-    if(activeTab === "6m") endExclusive = addDays(addMonths(startDate, 6), 0);
+    if(activeTab === "2m") endExclusive = addMonths(startDate, 2);
+    if(activeTab === "6m") endExclusive = addMonths(startDate, 6);
 
     const result = buildSchedule({
       flowAmount,
@@ -831,16 +884,14 @@
 
     renderTable(result.rows, currency);
 
-    // KPI
     $("kpiWrap").style.display = "grid";
     $("kpiFlow").textContent = fmtMoney(flowAmount, currency);
-    $("kpiMode").textContent = "Mode: " + mode.toUpperCase() + " | Withdraw dates: " + getWithdrawDates().length + "/10";
+    $("kpiMode").textContent = "Mode: " + mode.toUpperCase() + " | Currency: " + currency + " | Withdraw dates: " + getWithdrawDates().length + "/10";
     $("kpiWallet").textContent = fmtMoney(result.walletEnd, currency);
     $("kpiWithdrawn").textContent = "Withdrawn: " + fmtMoney(result.totalWithdrawn, currency);
     $("kpiAccrued").textContent = fmtMoney(result.totalAccrued, currency);
     $("kpiDays").textContent = "Paid days: " + result.paidDays;
 
-    // CSV cache
     window.__lastRows = result.rows.map((r,i)=>({
       Day: i+1,
       Date: r.date.toISOString().slice(0,10),
@@ -880,17 +931,27 @@
     URL.revokeObjectURL(url);
   }
 
-  // ---------- tabs ----------
+  // Tabs
   document.querySelectorAll(".tab").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
       activeTab = btn.dataset.tab;
-      // do not auto recalc while typing, only when user clicks calculate
     });
   });
 
-  // ---------- init ----------
+  // Buttons
+  $("calcBtn").addEventListener("click", calculate);
+  $("exportBtn").addEventListener("click", exportCSV);
+
+  // Manual edits => switch to manual
+  ["boostPct","boostedAmount","extraFiat","ecrNeeded"].forEach(id=>{
+    $(id).addEventListener("input", ()=>{
+      if(mode !== "manual") setMode("manual");
+    });
+  });
+
+  // Init
   (function init(){
     const now = new Date();
     $("depositDate").value = now.toISOString().slice(0,10);
@@ -900,26 +961,9 @@
     syncWithdrawMeta();
 
     setMode("auto");
-    $("resetAutoBtn").click(); // fill auto fields once
+    setCurrency("USDT");
+    $("resetAutoBtn").click();
   })();
-
-  // Buttons
-  $("calcBtn").addEventListener("click", calculate);
-  $("exportBtn").addEventListener("click", exportCSV);
-
-  // If user edits manual fields, switch to manual but do not overwrite their typing
-  ["boostPct","boostedAmount","extraFiat","ecrNeeded"].forEach(id=>{
-    $(id).addEventListener("input", ()=>{
-      if(mode !== "manual") setMode("manual");
-    });
-  });
-
-  // Keep suffix updated if currency changes
-  $("currency").addEventListener("input", ()=>{
-    const c = ($("currency").value || "USDT").trim();
-    $("depositSuffix").textContent = c;
-    $("flowSuffix").textContent = c;
-  });
 </script>
 </body>
 </html>
