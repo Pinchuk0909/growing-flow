@@ -24,18 +24,14 @@
     background-size: 55%;
   }
 
-  .wrap{
-    max-width:1200px;
-    margin:0 auto;
-    padding:20px;
-  }
+  .wrap{ max-width:1200px; margin:0 auto; padding:20px; }
 
   .card{
     background:var(--white);
     border:3px solid var(--black);
     border-radius:18px;
     padding:18px;
-    overflow:hidden; /* щоб нічого не вилазило */
+    overflow:hidden;
   }
 
   .header{
@@ -47,14 +43,14 @@
     margin-bottom:10px;
   }
 
-  .brand{
+  /* Логотип справа */
+  .brandRight{
+    margin-left:auto;
     display:flex;
-    align-items:center;
-    gap:12px;
-    flex-wrap:wrap;
+    justify-content:flex-end;
+    width:100%;
   }
-
-  .brand img{
+  .brandRight img{
     height:34px;
     width:auto;
     display:block;
@@ -80,7 +76,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap:14px;
   }
-
   .grid2{
     display:grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -91,6 +86,7 @@
     .grid3{ grid-template-columns: 1fr; }
     .grid2{ grid-template-columns: 1fr; }
     h1{ font-size:28px; }
+    .brandRight{ justify-content:flex-start; }
   }
 
   .box{
@@ -127,20 +123,16 @@
     min-width:0;
   }
 
-  input[readonly]{
-    background:var(--white);
-  }
+  input:focus{ border-color:var(--red); }
 
-  input:focus{
-    border-color:var(--red);
-  }
-
-  /* щоб довгі значення не ламали блок */
+  /* не ріжемо значення, щоб можна було редагувати нормально */
   input{
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
   }
+
+  input[readonly]{ background:var(--white); }
 
   .btn{
     background:var(--red);
@@ -149,10 +141,7 @@
     font-weight:800;
     cursor:pointer;
   }
-
-  .btn:hover{
-    filter:brightness(0.95);
-  }
+  .btn:hover{ filter:brightness(0.95); }
 
   .tabs{
     display:flex;
@@ -172,10 +161,7 @@
     cursor:pointer;
   }
 
-  .tab.active{
-    background:var(--red);
-    color:var(--white);
-  }
+  .tab.active{ background:var(--red); color:var(--white); }
 
   .summary{
     display:grid;
@@ -183,10 +169,7 @@
     gap:12px;
     margin-top:14px;
   }
-
-  @media (max-width: 900px){
-    .summary{ grid-template-columns: 1fr; }
-  }
+  @media (max-width: 900px){ .summary{ grid-template-columns: 1fr; } }
 
   .kpi{
     border:2px solid var(--black);
@@ -196,30 +179,23 @@
     overflow:hidden;
   }
 
-  .kpi .t{
-    font-size:12px;
-    font-weight:800;
-  }
-
+  .kpi .t{ font-size:12px; font-weight:800; }
   .kpi .v{
     margin-top:6px;
     font-size:20px;
     font-weight:900;
     color:var(--red);
     font-family: monospace;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+    white-space:normal;
+    overflow:visible;
   }
-
   .kpi .s{
     margin-top:6px;
     font-size:12px;
     font-weight:700;
     font-family: monospace;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+    white-space:normal;
+    overflow:visible;
   }
 
   .tableWrap{
@@ -274,11 +250,7 @@
     font-weight:900;
     cursor:pointer;
   }
-
-  .smallBtn.red{
-    background:var(--red);
-    color:var(--white);
-  }
+  .smallBtn.red{ background:var(--red); color:var(--white); }
 
   .withdrawList{
     display:grid;
@@ -286,10 +258,7 @@
     gap:10px;
     margin-top:10px;
   }
-
-  @media (max-width: 900px){
-    .withdrawList{ grid-template-columns: 1fr; }
-  }
+  @media (max-width: 900px){ .withdrawList{ grid-template-columns: 1fr; } }
 
   .withdrawItem{
     display:flex;
@@ -298,9 +267,7 @@
     min-width:0;
   }
 
-  .withdrawItem input{
-    flex:1;
-  }
+  .withdrawItem input{ flex:1; }
 
   .xBtn{
     width:auto;
@@ -314,10 +281,7 @@
     flex:0 0 auto;
   }
 
-  .xBtn:hover{
-    background:var(--red);
-    color:var(--white);
-  }
+  .xBtn:hover{ background:var(--red); color:var(--white); }
 </style>
 </head>
 
@@ -326,8 +290,8 @@
   <div class="card">
 
     <div class="header">
-      <div class="brand">
-        <!-- ЛОГОТИП CASHFLOW (як на стрілці) -->
+      <div style="flex:1 1 auto;"></div>
+      <div class="brandRight">
         <img src="cashflow.png" alt="CASHFLOW" />
       </div>
     </div>
@@ -336,13 +300,14 @@
 
     <div class="note">
       Day 1 = 0.3% on opened flow amount. Each paid day +0.01%. Sunday: no reward and no +0.01%.
-      Rewards go to wallet (no reinvest). Withdraw resets progress (wallet -> 0, rate progress reset), next paid day starts from 0.3%.
+      Rewards go to wallet (no reinvest). Withdraw resets progress (wallet -> 0, rate progress reset),
+      next paid day starts from 0.3%.
     </div>
 
     <div class="grid3">
       <div>
         <label>Deposit (USDT)</label>
-        <input id="amount" type="number" min="0" step="0.01" value="1000" />
+        <input id="amount" type="text" inputmode="decimal" value="1000" />
       </div>
       <div>
         <label>Deposit date</label>
@@ -360,7 +325,7 @@
       <div class="grid3">
         <div>
           <label>ECR rate (₮)</label>
-          <input id="ecrRate" type="number" step="0.01" value="816.80" />
+          <input id="ecrRate" type="text" inputmode="decimal" value="816.80" />
         </div>
         <div>
           <label>Flow multiplier</label>
@@ -408,11 +373,11 @@
         <div class="grid2">
           <div>
             <label>Start rate %</label>
-            <input id="startRate" type="number" step="0.01" value="0.30" />
+            <input id="startRate" type="text" inputmode="decimal" value="0.30" />
           </div>
           <div>
             <label>Daily bonus %</label>
-            <input id="rateStep" type="number" step="0.01" value="0.01" />
+            <input id="rateStep" type="text" inputmode="decimal" value="0.01" />
           </div>
         </div>
 
@@ -449,7 +414,10 @@
     </div>
 
     <div class="tabs">
-      <button class="tab active" id="tab30" type="button">30 days</button>
+      <button class="tab active" id="tab7" type="button">7 days</button>
+      <button class="tab" id="tab15" type="button">15 days</button>
+      <button class="tab" id="tab30" type="button">30 days</button>
+      <button class="tab" id="tab2m" type="button">2 months</button>
       <button class="tab" id="tab6m" type="button">6 months</button>
     </div>
 
@@ -494,7 +462,13 @@
     return new Date(y, (m||1)-1, dd||1);
   }
 
-  // Boost tiers
+  // allow comma or dot
+  function toNum(s){
+    const v = String(s ?? "").trim().replace(",", ".");
+    const n = Number(v);
+    return isFinite(n) ? n : 0;
+  }
+
   function boostPctFromDeposit(amount){
     const tiers = [
       { min:100, pct:130 },
@@ -550,14 +524,9 @@
   function getWithdrawDates(){
     const inputs = Array.from(withdrawListEl.querySelectorAll('input[type="date"]'));
     const dates = inputs.map(i => i.value).filter(Boolean);
-    // unique
     return Array.from(new Set(dates)).sort();
   }
-
-  function getWithdrawSet(){
-    return new Set(getWithdrawDates());
-  }
-
+  function getWithdrawSet(){ return new Set(getWithdrawDates()); }
   function syncWithdrawMeta(){
     const count = getWithdrawDates().length;
     addWithdrawBtn.disabled = count >= 10;
@@ -572,11 +541,11 @@
 
   clearWithdrawBtn.addEventListener("click", () => {
     withdrawListEl.innerHTML = "";
+    withdrawListEl.appendChild(createWithdrawRow(""));
     syncWithdrawMeta();
     calculate();
   });
 
-  // Schedule builder
   function buildSchedule({
     flowAmount,
     depositDate,
@@ -597,7 +566,7 @@
       endExclusive = addDays(horizonEndDate, 1);
     }
 
-    let rateIndex=1; // counts paid days since last reset
+    let rateIndex=1;
     let wallet=0;
     let totalAccrued=0;
     let totalWithdrawn=0;
@@ -635,7 +604,6 @@
         reward,
         flowAmount,
         walletEnd: wallet,
-        withdrawnToday,
         note
       });
     }
@@ -688,23 +656,25 @@
     URL.revokeObjectURL(url);
   }
 
-  let activeTab="30";
+  // Tabs: 7, 15, 30, 2m, 6m
+  let activeTab="7";
   function setTab(tab){
     activeTab=tab;
-    document.getElementById("tab30").classList.toggle("active", tab==="30");
-    document.getElementById("tab6m").classList.toggle("active", tab==="6m");
+    ["7","15","30","2m","6m"].forEach(t=>{
+      document.getElementById("tab"+t).classList.toggle("active", t===tab);
+    });
     calculate();
   }
 
   function calculate(){
-    const baseDeposit = Number(document.getElementById("amount").value || 0);
+    const baseDeposit = toNum(document.getElementById("amount").value);
     const currency = (document.getElementById("currency").value || "USDT").trim();
     const dateVal = document.getElementById("depositDate").value;
     if(!dateVal) return;
 
     const depositDate = parseDateInput(dateVal);
-    const startRatePct = Number(document.getElementById("startRate").value || 0.3);
-    const rateStepPct = Number(document.getElementById("rateStep").value || 0.01);
+    const startRatePct = toNum(document.getElementById("startRate").value) || 0.3;
+    const rateStepPct = toNum(document.getElementById("rateStep").value) || 0.01;
     const startNextDay = document.getElementById("startNextDay").checked;
     const withdrawSet = getWithdrawSet();
 
@@ -712,7 +682,8 @@
     const boostPct = boostPctFromDeposit(baseDeposit);
     const flowAmount = baseDeposit * (boostPct/100);
     const extraFiat = flowAmount - baseDeposit;
-    const ecrRate = Number(document.getElementById("ecrRate").value || 0);
+
+    const ecrRate = toNum(document.getElementById("ecrRate").value);
     const ecrNeeded = ecrRate>0 ? (extraFiat / ecrRate) : 0;
 
     document.getElementById("boostPct").value = boostPct + "%";
@@ -721,26 +692,34 @@
     document.getElementById("ecrNeeded").value = fmt(ecrNeeded) + " ECR";
 
     let result;
-    if(activeTab === "30"){
+
+    if(activeTab === "7"){
       result = buildSchedule({
-        flowAmount,
-        depositDate,
-        startRatePct,
-        rateStepPct,
-        startNextDay,
-        withdrawSet,
+        flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet,
+        horizonDays: 7
+      });
+    } else if(activeTab === "15"){
+      result = buildSchedule({
+        flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet,
+        horizonDays: 15
+      });
+    } else if(activeTab === "30"){
+      result = buildSchedule({
+        flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet,
         horizonDays: 30
+      });
+    } else if(activeTab === "2m"){
+      const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
+      const endDate = addMonths(startDate, 2);
+      result = buildSchedule({
+        flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet,
+        horizonEndDate: endDate
       });
     } else {
       const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
       const endDate = addMonths(startDate, 6);
       result = buildSchedule({
-        flowAmount,
-        depositDate,
-        startRatePct,
-        rateStepPct,
-        startNextDay,
-        withdrawSet,
+        flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet,
         horizonEndDate: endDate
       });
     }
@@ -760,7 +739,7 @@
     document.getElementById("kpiDays").textContent =
       "Paid days: " + result.paidDays + " | Sundays: " + sundays;
 
-    // save for CSV
+    // for CSV
     window.__lastRows = result.rows.map((r,i)=>({
       Day: i+1,
       Date: r.date.toISOString().slice(0,10),
@@ -775,12 +754,11 @@
     syncWithdrawMeta();
   }
 
-  // init
   (function init(){
     const now = new Date();
     document.getElementById("depositDate").value = now.toISOString().slice(0,10);
 
-    // start with 1 empty withdraw row (optional)
+    withdrawListEl.innerHTML = "";
     withdrawListEl.appendChild(createWithdrawRow(""));
     syncWithdrawMeta();
 
@@ -789,7 +767,11 @@
 
   document.getElementById("calcBtn").addEventListener("click", calculate);
   document.getElementById("exportBtn").addEventListener("click", exportCSV);
+
+  document.getElementById("tab7").addEventListener("click", ()=>setTab("7"));
+  document.getElementById("tab15").addEventListener("click", ()=>setTab("15"));
   document.getElementById("tab30").addEventListener("click", ()=>setTab("30"));
+  document.getElementById("tab2m").addEventListener("click", ()=>setTab("2m"));
   document.getElementById("tab6m").addEventListener("click", ()=>setTab("6m"));
 
   ["amount","depositDate","currency","startRate","rateStep","startNextDay","ecrRate"]
