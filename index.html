@@ -1,969 +1,201 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
 <title>Growing Flow Calculator</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
-  :root{
-    --red:#c00000;
-    --black:#000;
-    --white:#fff;
-  }
-  *{ box-sizing:border-box; }
+body { font-family: Arial, sans-serif; background:#fff; }
+.wrap { max-width:1100px; margin:30px auto; }
+.card { border:3px solid #000; border-radius:20px; padding:20px; }
 
-  body{
-    margin:0;
-    font-family: Arial, sans-serif;
-    color:var(--black);
-    background:
-      linear-gradient(rgba(255,255,255,0.94), rgba(255,255,255,0.94)),
-      url("logo.png") no-repeat center center fixed;
-    background-size: 55%;
-  }
+.header { display:flex; justify-content:space-between; align-items:center; }
+h1 { color:#c00000; margin:0; }
 
-  .wrap{ max-width:1200px; margin:0 auto; padding:20px; }
+.row { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; margin-top:14px; }
+label { font-weight:bold; font-size:13px; }
 
-  .card{
-    background:var(--white);
-    border:3px solid var(--black);
-    border-radius:18px;
-    padding:18px;
-    overflow:hidden;
-  }
+.field { position:relative; }
+input, select {
+  width:100%;
+  padding:10px 50px 10px 12px;
+  border:2px solid #000;
+  border-radius:12px;
+  font-size:15px;
+  box-sizing:border-box;
+}
 
-  .topbar{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:16px;
-  }
-  h1{
-    margin:0;
-    font-size:34px;
-    line-height:1.05;
-    color:var(--red);
-    font-weight:800;
-  }
-  .topbar img{
-    height:34px;
-    width:auto;
-    display:block;
-  }
+.suffix {
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  border:2px solid #000;
+  border-radius:10px;
+  padding:2px 8px;
+  font-size:12px;
+  background:#fff;
+}
 
-  .note{
-    margin:10px 0 14px;
-    font-size:13px;
-    line-height:1.45;
-  }
+.section { border:2px solid #000; border-radius:16px; padding:16px; margin-top:20px; }
 
-  .grid3{
-    display:grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap:14px;
-  }
-  .grid2{
-    display:grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap:14px;
-  }
-  @media (max-width: 900px){
-    .grid3{ grid-template-columns: 1fr; }
-    .grid2{ grid-template-columns: 1fr; }
-    h1{ font-size:28px; }
-  }
+.red { color:#c00000; }
 
-  .box{
-    border:2px solid var(--black);
-    border-radius:14px;
-    padding:12px;
-    background:var(--white);
-    overflow:hidden;
-  }
+button { padding:8px 14px; border-radius:12px; border:2px solid #000; background:#fff; cursor:pointer; }
 
-  .boxTitle{
-    color:var(--red);
-    font-weight:800;
-    margin:0 0 10px;
-    font-size:18px;
-  }
+.mode { float:right; }
 
-  label{
-    display:block;
-    font-size:13px;
-    font-weight:700;
-    margin:0 0 6px;
-  }
-
-  input, select, button{
-    width:100%;
-    padding:12px 12px;
-    border:2px solid var(--black);
-    border-radius:12px;
-    background:var(--white);
-    color:var(--black);
-    font-size:14px;
-    outline:none;
-    min-width:0;
-  }
-  input:focus, select:focus{ border-color:var(--red); }
-  input[readonly], select:disabled{ opacity:0.85; }
-
-  .field{
-    position:relative;
-  }
-  .field input{ padding-right:74px; }
-  .suffix{
-    position:absolute;
-    right:10px;
-    top:50%;
-    transform:translateY(-50%);
-    font-weight:900;
-    font-size:12px;
-    color:var(--black);
-    background:var(--white);
-    padding:2px 8px;
-    border-radius:999px;
-    border:2px solid var(--black);
-    pointer-events:none;
-  }
-
-  .rowBtns{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-top:12px;
-  }
-
-  .btn{
-    background:var(--red);
-    color:var(--white);
-    border-color:var(--black);
-    font-weight:900;
-    cursor:pointer;
-  }
-  .btn:hover{ filter:brightness(0.95); }
-
-  .smallBtn{
-    width:auto;
-    padding:10px 12px;
-    border-radius:12px;
-    border:2px solid var(--black);
-    background:var(--white);
-    color:var(--black);
-    font-weight:900;
-    cursor:pointer;
-  }
-  .smallBtn.red{ background:var(--red); color:var(--white); }
-
-  .badgeRow{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    flex-wrap:wrap;
-  }
-
-  .badge{
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    font-weight:900;
-    font-size:12px;
-    padding:8px 12px;
-    border:2px solid var(--black);
-    border-radius:999px;
-    background:var(--white);
-    cursor:pointer;
-    user-select:none;
-  }
-  .badge.manual{
-    border-color:var(--red);
-    color:var(--red);
-  }
-
-  .tabs{
-    display:flex;
-    gap:10px;
-    margin:14px 0 12px;
-    flex-wrap:wrap;
-  }
-  .tab{
-    width:auto;
-    padding:10px 14px;
-    border:2px solid var(--black);
-    border-radius:999px;
-    background:var(--white);
-    color:var(--black);
-    font-weight:900;
-    cursor:pointer;
-  }
-  .tab.active{ background:var(--red); color:var(--white); }
-
-  .summary{
-    display:grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap:12px;
-    margin-top:14px;
-  }
-  @media (max-width: 900px){ .summary{ grid-template-columns: 1fr; } }
-
-  .kpi{
-    border:2px solid var(--black);
-    border-radius:14px;
-    padding:12px;
-    background:var(--white);
-    overflow:hidden;
-  }
-  .kpi .t{ font-size:12px; font-weight:900; }
-  .kpi .v{
-    margin-top:6px;
-    font-size:20px;
-    font-weight:900;
-    color:var(--red);
-    font-family: monospace;
-  }
-  .kpi .s{
-    margin-top:6px;
-    font-size:12px;
-    font-weight:800;
-    font-family: monospace;
-  }
-
-  .tableWrap{
-    margin-top:12px;
-    border:2px solid var(--black);
-    border-radius:14px;
-    overflow:auto;
-    max-height:520px;
-    background:var(--white);
-  }
-  table{
-    width:100%;
-    border-collapse:collapse;
-    min-width: 900px;
-  }
-  thead th{
-    position:sticky;
-    top:0;
-    background:var(--black);
-    color:var(--white);
-    padding:10px;
-    font-size:12px;
-    text-align:left;
-    white-space:nowrap;
-    border-bottom:2px solid var(--black);
-  }
-  tbody td{
-    padding:10px;
-    border-bottom:2px solid var(--black);
-    font-size:13px;
-    white-space:nowrap;
-    font-family: monospace;
-  }
-
-  .withdrawList{
-    display:grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap:10px;
-    margin-top:10px;
-  }
-  @media (max-width: 900px){ .withdrawList{ grid-template-columns: 1fr; } }
-
-  .withdrawItem{
-    display:flex;
-    gap:8px;
-    align-items:center;
-  }
-  .withdrawItem input{ flex:1; }
-
-  .xBtn{
-    width:auto;
-    padding:10px 12px;
-    border-radius:12px;
-    border:2px solid var(--black);
-    background:var(--white);
-    color:var(--black);
-    font-weight:900;
-    cursor:pointer;
-    flex:0 0 auto;
-  }
-  .xBtn:hover{ background:var(--red); color:var(--white); }
-
-  .error{
-    margin-top:10px;
-    padding:10px 12px;
-    border:2px solid var(--red);
-    border-radius:12px;
-    color:var(--red);
-    font-weight:900;
-    display:none;
-  }
 </style>
 </head>
 
 <body>
 <div class="wrap">
-  <div class="card">
+<div class="card">
 
-    <div class="topbar">
-      <h1>Growing Flow Calculator</h1>
-      <img src="cashflow.png" alt="CASHFLOW" />
-    </div>
+<div class="header">
+  <h1>Growing Flow Calculator</h1>
+  <img src="cashflow.png" height="40">
+</div>
 
-    <div class="note">
-      Day 1 = 0.3% on opened flow amount. Each paid day +0.01%. Sunday: no reward and no +0.01%.
-      Rewards go to wallet (no reinvest). Withdraw resets progress (wallet -> 0, rate progress reset),
-      next paid day starts from 0.3%.
-    </div>
+<p style="font-size:13px">
+Day 1 = 0.3%. Each paid day +0.01%. Sunday no reward. Rewards go to wallet (no reinvest). Withdraw resets bonus.
+</p>
 
-    <div class="grid3">
-      <div class="field">
-        <label>Deposit</label>
-        <input id="amount" type="text" inputmode="decimal" value="1000" />
-        <span class="suffix" id="depositSuffix">USDT</span>
-      </div>
+<div class="row">
+  <div class="field">
+    <label>Deposit</label>
+    <input id="deposit" type="number" value="1000">
+    <span class="suffix" id="depSymbol">USDT</span>
+  </div>
 
-      <div>
-        <label>Deposit date</label>
-        <input id="depositDate" type="date" />
-      </div>
+  <div class="field">
+    <label>Deposit date</label>
+    <input type="date">
+  </div>
 
-      <div>
-        <label>Currency</label>
-        <select id="currency">
-          <option value="USDT">USDT</option>
-          <option value="EURO">EURO</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="box" style="margin-top:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-        <div class="boxTitle" style="margin:0;">ECR boost</div>
-
-        <div class="badgeRow">
-          <div id="modeToggle" class="badge" role="button" tabindex="0">
-            <span>MODE</span>
-            <span id="modeText">AUTO</span>
-          </div>
-
-          <button id="currencyToggle" type="button" class="badge" title="Switch currency">
-            <span>CCY</span>
-            <span id="ccyText">USDT</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="grid3" style="margin-top:10px;">
-        <div class="field">
-          <label>ECR rate</label>
-          <input id="ecrRate" type="text" inputmode="decimal" value="816.80" />
-          <span class="suffix">₮</span>
-        </div>
-
-        <div class="field">
-          <label>Flow multiplier</label>
-          <input id="boostPct" type="text" inputmode="decimal" value="150" />
-          <span class="suffix">%</span>
-        </div>
-
-        <div class="field">
-          <label>Flow opens on</label>
-          <input id="boostedAmount" type="text" inputmode="decimal" value="1500" />
-          <span class="suffix" id="flowSuffix">USDT</span>
-        </div>
-      </div>
-
-      <div class="grid3" style="margin-top:12px;">
-        <div class="field">
-          <label>Extra needed</label>
-          <input id="extraFiat" type="text" inputmode="decimal" value="500" />
-          <span class="suffix">₮</span>
-        </div>
-
-        <div class="field">
-          <label>ECR required</label>
-          <input id="ecrNeeded" type="text" inputmode="decimal" value="0.61214496" />
-          <span class="suffix">ECR</span>
-        </div>
-
-        <div>
-          <label>Status</label>
-          <input id="ecrNote" type="text" readonly value="ECR = extra / rate" />
-        </div>
-      </div>
-
-      <div class="rowBtns">
-        <button class="smallBtn" id="resetAutoBtn" type="button">Reset auto</button>
-      </div>
-
-      <div class="error" id="errBox"></div>
-    </div>
-
-    <div class="grid2" style="margin-top:14px;">
-      <div class="box">
-        <div class="boxTitle">Withdraw dates</div>
-        <div style="font-size:13px;font-weight:800;">
-          Add up to 10 dates. Each date withdraws wallet and resets +0.01% progress.
-        </div>
-
-        <div class="rowBtns">
-          <button class="smallBtn red" id="addWithdrawBtn" type="button">+ Add date</button>
-          <button class="smallBtn" id="clearWithdrawBtn" type="button">Clear</button>
-        </div>
-
-        <div class="withdrawList" id="withdrawList"></div>
-      </div>
-
-      <div class="box">
-        <div class="boxTitle">Rates</div>
-        <div class="grid2">
-          <div class="field">
-            <label>Start rate</label>
-            <input id="startRate" type="text" inputmode="decimal" value="0.30" />
-            <span class="suffix">%</span>
-          </div>
-          <div class="field">
-            <label>Daily bonus</label>
-            <input id="rateStep" type="text" inputmode="decimal" value="0.01" />
-            <span class="suffix">%</span>
-          </div>
-        </div>
-
-        <div style="margin-top:12px;">
-          <label style="display:flex;align-items:center;gap:10px;font-weight:900;">
-            <input id="startNextDay" type="checkbox" checked style="width:auto;margin:0;" />
-            Start accrual from next day after deposit
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <div class="rowBtns">
-      <button class="btn" id="calcBtn" type="button">Calculate</button>
-      <button class="smallBtn" id="exportBtn" type="button">Export CSV</button>
-    </div>
-
-    <div class="summary" id="kpiWrap" style="display:none;">
-      <div class="kpi">
-        <div class="t">Opened flow amount</div>
-        <div class="v" id="kpiFlow">0</div>
-        <div class="s" id="kpiMode">Mode: AUTO</div>
-      </div>
-      <div class="kpi">
-        <div class="t">Wallet now / Withdrawn</div>
-        <div class="v" id="kpiWallet">0</div>
-        <div class="s" id="kpiWithdrawn">Withdrawn: 0</div>
-      </div>
-      <div class="kpi">
-        <div class="t">Total accrued rewards</div>
-        <div class="v" id="kpiAccrued">0</div>
-        <div class="s" id="kpiDays">Paid days: 0</div>
-      </div>
-    </div>
-
-    <div class="tabs">
-      <button class="tab active" data-tab="7" type="button">7 days</button>
-      <button class="tab" data-tab="15" type="button">15 days</button>
-      <button class="tab" data-tab="30" type="button">30 days</button>
-      <button class="tab" data-tab="2m" type="button">2 months</button>
-      <button class="tab" data-tab="6m" type="button">6 months</button>
-    </div>
-
-    <div class="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Day</th>
-            <th>Date</th>
-            <th>Weekday</th>
-            <th>Rate %</th>
-            <th>Reward</th>
-            <th>Flow amount</th>
-            <th>Wallet end</th>
-            <th>Note</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-
+  <div class="field">
+    <label>Currency</label>
+    <select id="currency">
+      <option value="USDT">USDT</option>
+      <option value="EURO">EURO</option>
+    </select>
   </div>
 </div>
 
+<div class="section">
+  <div class="mode"><button>MODE AUTO</button></div>
+  <h3 class="red">ECR boost</h3>
+
+  <div class="row">
+    <div class="field">
+      <label>ECR rate</label>
+      <input id="rate" type="number" value="816.8">
+      <span class="suffix" id="rateSymbol">₮</span>
+    </div>
+
+    <div class="field">
+      <label>Flow multiplier</label>
+      <select id="multiplier"></select>
+      <span class="suffix">%</span>
+    </div>
+
+    <div class="field">
+      <label>Flow opens on</label>
+      <input id="opens" disabled>
+      <span class="suffix" id="openSymbol">USDT</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Extra needed</label>
+      <input id="extra" type="number">
+      <span class="suffix" id="extraSymbol">₮</span>
+    </div>
+
+    <div class="field">
+      <label>ECR required</label>
+      <input id="ecr" disabled>
+      <span class="suffix">ECR</span>
+    </div>
+
+    <div class="field">
+      <label>Status</label>
+      <input disabled value="ECR = extra / rate">
+    </div>
+  </div>
+
+</div>
+
+</div>
+</div>
+
 <script>
-  const $ = (id)=>document.getElementById(id);
+const usdtTable = [
+  [100,130],[500,140],[1000,150],[2500,160],[5000,180],[10000,200],
+  [25000,210],[50000,230],[100000,250],[250000,260],[500000,270],[1000000,280]
+];
 
-  function toNum(raw){
-    const s = String(raw ?? "")
-      .trim()
-      .replaceAll(" ", "")
-      .replaceAll(",", ".");
-    const n = Number(s);
-    return Number.isFinite(n) ? n : NaN;
-  }
+const euroTable = [
+  [50,50],[100,60],[250,70],[500,80],[1000,100],[2000,110],[3000,120],[5000,130],[10000,150]
+];
 
-  function fmt(n, digits=8){
-    if(!Number.isFinite(n)) return "";
-    return new Intl.NumberFormat("en-US",{maximumFractionDigits:digits}).format(n);
-  }
+const currency = document.getElementById("currency");
+const multiplier = document.getElementById("multiplier");
+const deposit = document.getElementById("deposit");
+const opens = document.getElementById("opens");
+const extra = document.getElementById("extra");
+const rate = document.getElementById("rate");
+const ecr = document.getElementById("ecr");
 
-  function fmtMoney(n, ccy){
-    if(!Number.isFinite(n)) return "0 " + ccy;
-    return fmt(n, 8) + " " + ccy;
-  }
+function loadMultipliers() {
+  multiplier.innerHTML = "";
+  let table = currency.value==="USDT" ? usdtTable : euroTable;
 
-  function weekdayName(d){ return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]; }
-  function addDays(date, days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
-
-  function addMonths(date, months){
-    const d=new Date(date);
-    const day=d.getDate();
-    d.setMonth(d.getMonth()+months);
-    if(d.getDate()<day) d.setDate(0);
-    return d;
-  }
-
-  function parseDateInput(value){
-    const [y,m,dd] = String(value||"").split("-").map(Number);
-    if(!y || !m || !dd) return null;
-    return new Date(y, (m-1), dd);
-  }
-
-  // USDT: pct is full multiplier (130 means 130%)
-  function boostPctFromDepositUSDT(amount){
-    const tiers = [
-      { min:100, pct:130 },
-      { min:500, pct:140 },
-      { min:1000, pct:150 },
-      { min:2500, pct:160 },
-      { min:5000, pct:180 },
-      { min:10000, pct:200 },
-      { min:25000, pct:210 },
-      { min:50000, pct:230 },
-      { min:100000, pct:250 },
-      { min:250000, pct:260 },
-      { min:500000, pct:270 },
-      { min:1000000, pct:280 },
-    ];
-    let pct=100;
-    for(const t of tiers){
-      if(amount>=t.min) pct=t.pct;
-    }
-    return pct;
-  }
-
-  // EURO: table is bonuses (+50%, +60%, ...) so multiplier = 100 + bonus
-  function boostPctFromDepositEURO(amount){
-    const tiers = [
-      { min:50, bonus:50 },
-      { min:100, bonus:60 },
-      { min:250, bonus:70 },
-      { min:500, bonus:80 },
-      { min:1000, bonus:100 },
-      { min:2000, bonus:110 },
-      { min:3000, bonus:120 },
-      { min:5000, bonus:130 },
-      { min:10000, bonus:150 },
-    ];
-    let bonus=0;
-    for(const t of tiers){
-      if(amount>=t.min) bonus=t.bonus;
-    }
-    return 100 + bonus; // full multiplier in %
-  }
-
-  function boostPctFromDeposit(amount, currency){
-    return (currency === "EURO")
-      ? boostPctFromDepositEURO(amount)
-      : boostPctFromDepositUSDT(amount);
-  }
-
-  // Withdraw dates UI
-  const withdrawListEl = $("withdrawList");
-  const addWithdrawBtn = $("addWithdrawBtn");
-
-  function syncWithdrawMeta(){
-    const count = withdrawListEl.querySelectorAll('input[type="date"]').length;
-    addWithdrawBtn.disabled = count >= 10;
-  }
-
-  function createWithdrawRow(value=""){
-    const wrap = document.createElement("div");
-    wrap.className = "withdrawItem";
-
-    const input = document.createElement("input");
-    input.type = "date";
-    input.value = value;
-
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "xBtn";
-    del.textContent = "X";
-    del.addEventListener("click", () => {
-      wrap.remove();
-      syncWithdrawMeta();
-    });
-
-    wrap.appendChild(input);
-    wrap.appendChild(del);
-    return wrap;
-  }
-
-  function getWithdrawDates(){
-    const inputs = Array.from(withdrawListEl.querySelectorAll('input[type="date"]'));
-    const dates = inputs.map(i => i.value).filter(Boolean);
-    return Array.from(new Set(dates)).sort();
-  }
-  function getWithdrawSet(){ return new Set(getWithdrawDates()); }
-
-  $("addWithdrawBtn").addEventListener("click", () => {
-    const count = withdrawListEl.querySelectorAll('input[type="date"]').length;
-    if(count >= 10) return;
-    withdrawListEl.appendChild(createWithdrawRow(""));
-    syncWithdrawMeta();
+  table.forEach(row=>{
+    let opt=document.createElement("option");
+    opt.value=row[1];
+    opt.text=row[0]+" → "+row[1]+"%";
+    multiplier.appendChild(opt);
   });
 
-  $("clearWithdrawBtn").addEventListener("click", () => {
-    withdrawListEl.innerHTML = "";
-    withdrawListEl.appendChild(createWithdrawRow(""));
-    syncWithdrawMeta();
-  });
+  updateSymbols();
+  calculate();
+}
 
-  // Mode
-  let mode = "auto"; // auto | manual
-  let activeTab = "7";
+function updateSymbols() {
+  let sym = currency.value==="USDT" ? "₮" : "€";
+  document.getElementById("rateSymbol").innerText = sym;
+  document.getElementById("extraSymbol").innerText = sym;
+  document.getElementById("depSymbol").innerText = currency.value;
+  document.getElementById("openSymbol").innerText = currency.value;
+}
 
-  function setMode(m){
-    mode = m;
-    const badge = $("modeToggle");
-    const text = $("modeText");
-    text.textContent = (m === "manual") ? "MANUAL" : "AUTO";
-    badge.classList.toggle("manual", m === "manual");
+function calculate() {
+  let dep = parseFloat(deposit.value||0);
+  let mult = parseFloat(multiplier.value||0);
 
-    const manualFields = ["boostPct","boostedAmount","extraFiat","ecrNeeded"];
-    manualFields.forEach(id => {
-      $(id).readOnly = (m === "auto");
-    });
-  }
+  let opened = dep * (mult/100);
+  opens.value = opened.toFixed(2);
 
-  $("modeToggle").addEventListener("click", () => {
-    setMode(mode === "auto" ? "manual" : "auto");
-  });
+  let ex = opened - dep;
+  extra.value = ex.toFixed(2);
 
-  // Currency sync + toggle
-  function setCurrency(ccy){
-    $("currency").value = ccy;
-    $("ccyText").textContent = ccy;
-    $("depositSuffix").textContent = ccy;
-    $("flowSuffix").textContent = ccy;
-  }
+  let r = parseFloat(rate.value||1);
+  ecr.value = (ex / r).toFixed(8);
+}
 
-  $("currency").addEventListener("change", ()=>{
-    setCurrency($("currency").value);
-    // Keep auto numbers consistent if in AUTO
-    if(mode === "auto") $("resetAutoBtn").click();
-  });
+currency.onchange = loadMultipliers;
+multiplier.onchange = calculate;
+deposit.oninput = calculate;
+rate.oninput = calculate;
+extra.oninput = ()=>{
+  ecr.value = (extra.value / rate.value).toFixed(8);
+};
 
-  $("currencyToggle").addEventListener("click", ()=>{
-    const next = ($("currency").value === "USDT") ? "EURO" : "USDT";
-    setCurrency(next);
-    if(mode === "auto") $("resetAutoBtn").click();
-  });
-
-  $("resetAutoBtn").addEventListener("click", () => {
-    setMode("auto");
-    const dep = toNum($("amount").value);
-    const ccy = $("currency").value;
-
-    if(Number.isFinite(dep)){
-      const pct = boostPctFromDeposit(dep, ccy);
-      const flow = dep * (pct/100);
-      const extra = Math.max(0, flow - dep);
-      const rate = toNum($("ecrRate").value);
-      const ecr = (Number.isFinite(rate) && rate>0) ? (extra / rate) : 0;
-
-      $("boostPct").value = fmt(pct, 8);
-      $("boostedAmount").value = fmt(flow, 8);
-      $("extraFiat").value = fmt(extra, 8);
-      $("ecrNeeded").value = fmt(ecr, 8);
-    }
-  });
-
-  // Schedule builder
-  function buildSchedule({
-    flowAmount,
-    depositDate,
-    startRatePct,
-    rateStepPct,
-    startNextDay,
-    withdrawSet,
-    endExclusive
-  }){
-    const rows=[];
-    const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
-
-    let rateIndex=1;
-    let wallet=0;
-    let totalAccrued=0;
-    let totalWithdrawn=0;
-    let paidDays=0;
-
-    for(let d=new Date(startDate); d<endExclusive; d=addDays(d,1)){
-      const dateStr = d.toISOString().slice(0,10);
-      const isSunday = d.getDay()===0;
-      const isWithdraw = withdrawSet.has(dateStr);
-
-      let ratePct=0, reward=0, note="";
-
-      if(isWithdraw){
-        totalWithdrawn += wallet;
-        wallet = 0;
-        note = "Withdraw: reset";
-        rateIndex = 1;
-      } else if(isSunday){
-        note = "Sunday: no reward";
-      } else {
-        ratePct = startRatePct + (rateIndex-1)*rateStepPct;
-        reward = flowAmount * (ratePct/100);
-        wallet += reward;
-        totalAccrued += reward;
-        paidDays += 1;
-        note = "Paid day";
-        rateIndex += 1;
-      }
-
-      rows.push({
-        date: new Date(d),
-        weekday: weekdayName(d),
-        ratePct,
-        reward,
-        flowAmount,
-        walletEnd: wallet,
-        note
-      });
-    }
-
-    return { rows, walletEnd: wallet, totalAccrued, totalWithdrawn, paidDays };
-  }
-
-  function renderTable(rows, currency){
-    const tbody = $("tbody");
-    tbody.innerHTML = "";
-    rows.forEach((r, idx) => {
-      const tr = document.createElement("tr");
-      const dateStr = r.date.toISOString().slice(0,10);
-      tr.innerHTML = `
-        <td>${idx+1}</td>
-        <td>${dateStr}</td>
-        <td>${r.weekday}</td>
-        <td>${r.ratePct ? (fmt(r.ratePct, 8) + "%") : ""}</td>
-        <td>${fmtMoney(r.reward, currency)}</td>
-        <td>${fmtMoney(r.flowAmount, currency)}</td>
-        <td>${fmtMoney(r.walletEnd, currency)}</td>
-        <td>${r.note}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function showErr(msg){
-    const box = $("errBox");
-    if(!msg){
-      box.style.display="none";
-      box.textContent="";
-      return;
-    }
-    box.style.display="block";
-    box.textContent=msg;
-  }
-
-  function calculate(){
-    showErr("");
-
-    const currency = $("currency").value;
-    setCurrency(currency);
-
-    const dep = toNum($("amount").value);
-    if(!Number.isFinite(dep) || dep <= 0){
-      showErr("Deposit must be a positive number");
-      return;
-    }
-
-    const dateVal = $("depositDate").value;
-    const depositDate = parseDateInput(dateVal);
-    if(!depositDate){
-      showErr("Deposit date is required");
-      return;
-    }
-
-    const ecrRate = toNum($("ecrRate").value);
-    if(!Number.isFinite(ecrRate) || ecrRate <= 0){
-      showErr("ECR rate must be a positive number");
-      return;
-    }
-
-    const startRatePct = toNum($("startRate").value);
-    const rateStepPct = toNum($("rateStep").value);
-    if(!Number.isFinite(startRatePct) || startRatePct <= 0){
-      showErr("Start rate must be a positive number");
-      return;
-    }
-    if(!Number.isFinite(rateStepPct) || rateStepPct < 0){
-      showErr("Daily bonus must be 0 or positive");
-      return;
-    }
-
-    const startNextDay = $("startNextDay").checked;
-    const withdrawSet = getWithdrawSet();
-
-    let boostPct, flowAmount, extraFiat, ecrNeeded;
-
-    if(mode === "auto"){
-      boostPct = boostPctFromDeposit(dep, currency);
-      flowAmount = dep * (boostPct/100);
-      extraFiat = Math.max(0, flowAmount - dep);
-      ecrNeeded = extraFiat / ecrRate;
-
-      $("boostPct").value = fmt(boostPct, 8);
-      $("boostedAmount").value = fmt(flowAmount, 8);
-      $("extraFiat").value = fmt(extraFiat, 8);
-      $("ecrNeeded").value = fmt(ecrNeeded, 8);
-    } else {
-      boostPct = toNum($("boostPct").value);
-      flowAmount = toNum($("boostedAmount").value);
-      extraFiat = toNum($("extraFiat").value);
-      ecrNeeded = toNum($("ecrNeeded").value);
-
-      if(Number.isFinite(flowAmount) && flowAmount > 0){
-        extraFiat = Math.max(0, flowAmount - dep);
-        boostPct = (dep > 0) ? (flowAmount / dep * 100) : boostPct;
-        ecrNeeded = extraFiat / ecrRate;
-      } else if(Number.isFinite(extraFiat) && extraFiat >= 0){
-        flowAmount = dep + extraFiat;
-        boostPct = (dep > 0) ? (flowAmount / dep * 100) : boostPct;
-        ecrNeeded = extraFiat / ecrRate;
-      } else if(Number.isFinite(ecrNeeded) && ecrNeeded >= 0){
-        extraFiat = ecrNeeded * ecrRate;
-        flowAmount = dep + extraFiat;
-        boostPct = (dep > 0) ? (flowAmount / dep * 100) : boostPct;
-      } else if(Number.isFinite(boostPct) && boostPct > 0){
-        flowAmount = dep * (boostPct/100);
-        extraFiat = Math.max(0, flowAmount - dep);
-        ecrNeeded = extraFiat / ecrRate;
-      } else {
-        showErr("In MANUAL mode enter at least one of: Flow opens on, Extra needed, ECR required, or Flow multiplier");
-        return;
-      }
-
-      $("boostPct").value = fmt(boostPct, 8);
-      $("boostedAmount").value = fmt(flowAmount, 8);
-      $("extraFiat").value = fmt(extraFiat, 8);
-      $("ecrNeeded").value = fmt(ecrNeeded, 8);
-    }
-
-    let endExclusive;
-    const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
-
-    if(activeTab === "7") endExclusive = addDays(startDate, 7);
-    if(activeTab === "15") endExclusive = addDays(startDate, 15);
-    if(activeTab === "30") endExclusive = addDays(startDate, 30);
-    if(activeTab === "2m") endExclusive = addMonths(startDate, 2);
-    if(activeTab === "6m") endExclusive = addMonths(startDate, 6);
-
-    const result = buildSchedule({
-      flowAmount,
-      depositDate,
-      startRatePct,
-      rateStepPct,
-      startNextDay,
-      withdrawSet,
-      endExclusive
-    });
-
-    renderTable(result.rows, currency);
-
-    $("kpiWrap").style.display = "grid";
-    $("kpiFlow").textContent = fmtMoney(flowAmount, currency);
-    $("kpiMode").textContent = "Mode: " + mode.toUpperCase() + " | Currency: " + currency + " | Withdraw dates: " + getWithdrawDates().length + "/10";
-    $("kpiWallet").textContent = fmtMoney(result.walletEnd, currency);
-    $("kpiWithdrawn").textContent = "Withdrawn: " + fmtMoney(result.totalWithdrawn, currency);
-    $("kpiAccrued").textContent = fmtMoney(result.totalAccrued, currency);
-    $("kpiDays").textContent = "Paid days: " + result.paidDays;
-
-    window.__lastRows = result.rows.map((r,i)=>({
-      Day: i+1,
-      Date: r.date.toISOString().slice(0,10),
-      Weekday: r.weekday,
-      RatePct: r.ratePct,
-      Reward: r.reward,
-      FlowAmount: r.flowAmount,
-      WalletEnd: r.walletEnd,
-      Note: r.note
-    }));
-
-    syncWithdrawMeta();
-  }
-
-  function exportCSV(){
-    const rows = window.__lastRows || [];
-    if(!rows.length){ alert("No data"); return; }
-
-    const headers = Object.keys(rows[0]);
-    const lines = [
-      headers.join(","),
-      ...rows.map(r => headers.map(h => {
-        const s = String(r[h] ?? "");
-        const esc = s.replaceAll('"','""');
-        return (esc.includes(",") || esc.includes('"') || esc.includes("\n")) ? `"${esc}"` : esc;
-      }).join(","))
-    ];
-
-    const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8;"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "growing-flow.csv";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  // Tabs
-  document.querySelectorAll(".tab").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active");
-      activeTab = btn.dataset.tab;
-    });
-  });
-
-  // Buttons
-  $("calcBtn").addEventListener("click", calculate);
-  $("exportBtn").addEventListener("click", exportCSV);
-
-  // Manual edits => switch to manual
-  ["boostPct","boostedAmount","extraFiat","ecrNeeded"].forEach(id=>{
-    $(id).addEventListener("input", ()=>{
-      if(mode !== "manual") setMode("manual");
-    });
-  });
-
-  // Init
-  (function init(){
-    const now = new Date();
-    $("depositDate").value = now.toISOString().slice(0,10);
-
-    withdrawListEl.innerHTML = "";
-    withdrawListEl.appendChild(createWithdrawRow(""));
-    syncWithdrawMeta();
-
-    setMode("auto");
-    setCurrency("USDT");
-    $("resetAutoBtn").click();
-  })();
+loadMultipliers();
 </script>
+
 </body>
 </html>
