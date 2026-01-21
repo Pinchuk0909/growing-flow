@@ -11,7 +11,6 @@
     --black:#000000;
     --white:#ffffff;
   }
-
   *{ box-sizing:border-box; }
 
   body{
@@ -34,26 +33,19 @@
     overflow:hidden;
   }
 
-  .header{
+  /* ХЕДЕР: заголовок і логотип в один ряд */
+  .topbar{
     display:flex;
-    align-items:flex-start;
+    align-items:center;
     justify-content:space-between;
-    gap:14px;
-    flex-wrap:wrap;
-    margin-bottom:10px;
+    gap:16px;
+    flex-wrap:nowrap;
   }
-
-  /* Логотип справа */
-  .brandRight{
-    margin-left:auto;
-    display:flex;
-    justify-content:flex-end;
-    width:100%;
-  }
-  .brandRight img{
+  .topbar img{
     height:34px;
     width:auto;
     display:block;
+    flex:0 0 auto;
   }
 
   h1{
@@ -62,6 +54,16 @@
     line-height:1.05;
     color:var(--red);
     font-weight:800;
+    flex:1 1 auto;
+    min-width:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  @media (max-width: 900px){
+    .topbar{ flex-wrap:wrap; }
+    h1{ font-size:28px; white-space:normal; }
   }
 
   .note{
@@ -81,12 +83,9 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap:14px;
   }
-
   @media (max-width: 900px){
     .grid3{ grid-template-columns: 1fr; }
     .grid2{ grid-template-columns: 1fr; }
-    h1{ font-size:28px; }
-    .brandRight{ justify-content:flex-start; }
   }
 
   .box{
@@ -125,15 +124,6 @@
 
   input:focus{ border-color:var(--red); }
 
-  /* не ріжемо значення, щоб можна було редагувати нормально */
-  input{
-    white-space:normal;
-    overflow:visible;
-    text-overflow:clip;
-  }
-
-  input[readonly]{ background:var(--white); }
-
   .btn{
     background:var(--red);
     color:var(--white);
@@ -142,96 +132,6 @@
     cursor:pointer;
   }
   .btn:hover{ filter:brightness(0.95); }
-
-  .tabs{
-    display:flex;
-    gap:10px;
-    margin:14px 0 12px;
-    flex-wrap:wrap;
-  }
-
-  .tab{
-    width:auto;
-    padding:10px 14px;
-    border:2px solid var(--black);
-    border-radius:999px;
-    background:var(--white);
-    color:var(--black);
-    font-weight:800;
-    cursor:pointer;
-  }
-
-  .tab.active{ background:var(--red); color:var(--white); }
-
-  .summary{
-    display:grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap:12px;
-    margin-top:14px;
-  }
-  @media (max-width: 900px){ .summary{ grid-template-columns: 1fr; } }
-
-  .kpi{
-    border:2px solid var(--black);
-    border-radius:14px;
-    padding:12px;
-    background:var(--white);
-    overflow:hidden;
-  }
-
-  .kpi .t{ font-size:12px; font-weight:800; }
-  .kpi .v{
-    margin-top:6px;
-    font-size:20px;
-    font-weight:900;
-    color:var(--red);
-    font-family: monospace;
-    white-space:normal;
-    overflow:visible;
-  }
-  .kpi .s{
-    margin-top:6px;
-    font-size:12px;
-    font-weight:700;
-    font-family: monospace;
-    white-space:normal;
-    overflow:visible;
-  }
-
-  .tableWrap{
-    margin-top:12px;
-    border:2px solid var(--black);
-    border-radius:14px;
-    overflow:auto;
-    max-height:520px;
-    background:var(--white);
-  }
-
-  table{
-    width:100%;
-    border-collapse:collapse;
-    min-width: 900px;
-  }
-
-  thead th{
-    position:sticky;
-    top:0;
-    background:var(--black);
-    color:var(--white);
-    padding:10px;
-    font-size:12px;
-    text-align:left;
-    white-space:nowrap;
-    border-bottom:2px solid var(--black);
-  }
-
-  tbody td{
-    padding:10px;
-    border-bottom:2px solid var(--black);
-    font-size:13px;
-    white-space:nowrap;
-    font-family: monospace;
-  }
 
   .rowBtns{
     display:flex;
@@ -252,6 +152,90 @@
   }
   .smallBtn.red{ background:var(--red); color:var(--white); }
 
+  .tabs{
+    display:flex;
+    gap:10px;
+    margin:14px 0 12px;
+    flex-wrap:wrap;
+  }
+
+  .tab{
+    width:auto;
+    padding:10px 14px;
+    border:2px solid var(--black);
+    border-radius:999px;
+    background:var(--white);
+    color:var(--black);
+    font-weight:800;
+    cursor:pointer;
+  }
+  .tab.active{ background:var(--red); color:var(--white); }
+
+  .summary{
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap:12px;
+    margin-top:14px;
+  }
+  @media (max-width: 900px){ .summary{ grid-template-columns: 1fr; } }
+
+  .kpi{
+    border:2px solid var(--black);
+    border-radius:14px;
+    padding:12px;
+    background:var(--white);
+    overflow:hidden;
+  }
+  .kpi .t{ font-size:12px; font-weight:800; }
+  .kpi .v{
+    margin-top:6px;
+    font-size:20px;
+    font-weight:900;
+    color:var(--red);
+    font-family: monospace;
+    white-space:normal;
+  }
+  .kpi .s{
+    margin-top:6px;
+    font-size:12px;
+    font-weight:700;
+    font-family: monospace;
+    white-space:normal;
+  }
+
+  .tableWrap{
+    margin-top:12px;
+    border:2px solid var(--black);
+    border-radius:14px;
+    overflow:auto;
+    max-height:520px;
+    background:var(--white);
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    min-width: 900px;
+  }
+  thead th{
+    position:sticky;
+    top:0;
+    background:var(--black);
+    color:var(--white);
+    padding:10px;
+    font-size:12px;
+    text-align:left;
+    white-space:nowrap;
+    border-bottom:2px solid var(--black);
+  }
+  tbody td{
+    padding:10px;
+    border-bottom:2px solid var(--black);
+    font-size:13px;
+    white-space:nowrap;
+    font-family: monospace;
+  }
+
   .withdrawList{
     display:grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -266,7 +250,6 @@
     align-items:center;
     min-width:0;
   }
-
   .withdrawItem input{ flex:1; }
 
   .xBtn{
@@ -280,7 +263,6 @@
     cursor:pointer;
     flex:0 0 auto;
   }
-
   .xBtn:hover{ background:var(--red); color:var(--white); }
 </style>
 </head>
@@ -289,14 +271,10 @@
 <div class="wrap">
   <div class="card">
 
-    <div class="header">
-      <div style="flex:1 1 auto;"></div>
-      <div class="brandRight">
-        <img src="cashflow.png" alt="CASHFLOW" />
-      </div>
+    <div class="topbar">
+      <h1>Growing Flow Calculator</h1>
+      <img src="cashflow.png" alt="CASHFLOW" />
     </div>
-
-    <h1>Growing Flow Calculator</h1>
 
     <div class="note">
       Day 1 = 0.3% on opened flow amount. Each paid day +0.01%. Sunday: no reward and no +0.01%.
@@ -329,27 +307,35 @@
         </div>
         <div>
           <label>Flow multiplier</label>
-          <input id="boostPct" type="text" readonly value="100%" />
+          <!-- ТЕПЕР РЕДАГУЄТЬСЯ -->
+          <input id="boostPct" type="text" inputmode="decimal" value="150%" />
         </div>
         <div>
           <label>Flow opens on</label>
-          <input id="boostedAmount" type="text" readonly value="0" />
+          <!-- ТЕПЕР РЕДАГУЄТЬСЯ -->
+          <input id="boostedAmount" type="text" inputmode="decimal" value="0" />
         </div>
       </div>
 
       <div class="grid3" style="margin-top:12px;">
         <div>
           <label>Extra needed (₮)</label>
-          <input id="extraFiat" type="text" readonly value="0" />
+          <!-- ТЕПЕР РЕДАГУЄТЬСЯ -->
+          <input id="extraFiat" type="text" inputmode="decimal" value="0" />
         </div>
         <div>
           <label>ECR required</label>
-          <input id="ecrNeeded" type="text" readonly value="0" />
+          <!-- ТЕПЕР РЕДАГУЄТЬСЯ -->
+          <input id="ecrNeeded" type="text" inputmode="decimal" value="0" />
         </div>
         <div>
           <label>Status</label>
           <input id="ecrNote" type="text" readonly value="ECR = extra / rate" />
         </div>
+      </div>
+
+      <div class="rowBtns">
+        <button class="smallBtn" id="resetAutoBtn" type="button">Reset auto</button>
       </div>
     </div>
 
@@ -462,10 +448,16 @@
     return new Date(y, (m||1)-1, dd||1);
   }
 
-  // allow comma or dot
-  function toNum(s){
-    const v = String(s ?? "").trim().replace(",", ".");
-    const n = Number(v);
+  // allow comma or dot, allow "150%" and "1,500 USDT" formats
+  function toNum(raw){
+    const s = String(raw ?? "").trim()
+      .replaceAll("₮","")
+      .replaceAll("USDT","")
+      .replaceAll("ECR","")
+      .replaceAll("%","")
+      .replaceAll(" ","")
+      .replaceAll(",", ".");
+    const n = Number(s);
     return isFinite(n) ? n : 0;
   }
 
@@ -546,6 +538,24 @@
     calculate();
   });
 
+  // ECR override mode
+  let ecrMode = "auto"; // "auto" | "manual"
+  function setManual(){ ecrMode="manual"; }
+  function setAuto(){ ecrMode="auto"; }
+
+  document.getElementById("resetAutoBtn").addEventListener("click", () => {
+    setAuto();
+    calculate();
+  });
+
+  // manual triggers
+  ["boostPct","boostedAmount","extraFiat","ecrNeeded"].forEach(id=>{
+    document.getElementById(id).addEventListener("input", ()=>{
+      setManual();
+      calculate();
+    });
+  });
+
   function buildSchedule({
     flowAmount,
     depositDate,
@@ -577,13 +587,12 @@
       const isSunday = d.getDay()===0;
       const isWithdraw = withdrawSet.has(dateStr);
 
-      let ratePct=0, reward=0, note="", withdrawnToday=0;
+      let ratePct=0, reward=0, note="";
 
       if(isWithdraw){
-        withdrawnToday = wallet;
-        totalWithdrawn += withdrawnToday;
+        totalWithdrawn += wallet;
         wallet = 0;
-        note = withdrawnToday>0 ? ("Withdraw: " + fmt(withdrawnToday)) : "Withdraw: wallet 0";
+        note = "Withdraw: reset";
         rateIndex = 1;
       } else if(isSunday){
         note = "Sunday: no reward";
@@ -656,7 +665,6 @@
     URL.revokeObjectURL(url);
   }
 
-  // Tabs: 7, 15, 30, 2m, 6m
   let activeTab="7";
   function setTab(tab){
     activeTab=tab;
@@ -667,8 +675,9 @@
   }
 
   function calculate(){
-    const baseDeposit = toNum(document.getElementById("amount").value);
     const currency = (document.getElementById("currency").value || "USDT").trim();
+    const baseDeposit = toNum(document.getElementById("amount").value);
+    const ecrRate = toNum(document.getElementById("ecrRate").value);
     const dateVal = document.getElementById("depositDate").value;
     if(!dateVal) return;
 
@@ -678,50 +687,70 @@
     const startNextDay = document.getElementById("startNextDay").checked;
     const withdrawSet = getWithdrawSet();
 
-    // ECR boost
-    const boostPct = boostPctFromDeposit(baseDeposit);
-    const flowAmount = baseDeposit * (boostPct/100);
-    const extraFiat = flowAmount - baseDeposit;
+    // AUTO baseline
+    let boostPctAuto = boostPctFromDeposit(baseDeposit);
+    let flowAmountAuto = baseDeposit * (boostPctAuto/100);
+    let extraAuto = flowAmountAuto - baseDeposit;
+    let ecrNeededAuto = ecrRate>0 ? (extraAuto / ecrRate) : 0;
 
-    const ecrRate = toNum(document.getElementById("ecrRate").value);
-    const ecrNeeded = ecrRate>0 ? (extraFiat / ecrRate) : 0;
+    // MANUAL overrides
+    let boostPct = boostPctAuto;
+    let flowAmount = flowAmountAuto;
+    let extraFiat = extraAuto;
+    let ecrNeeded = ecrNeededAuto;
 
-    document.getElementById("boostPct").value = boostPct + "%";
+    if(ecrMode === "manual"){
+      const boostPctInput = toNum(document.getElementById("boostPct").value);
+      const flowInput = toNum(document.getElementById("boostedAmount").value);
+      const extraInput = toNum(document.getElementById("extraFiat").value);
+      const ecrInput = toNum(document.getElementById("ecrNeeded").value);
+
+      // priority: if user filled something, use it
+      if(flowInput > 0){
+        flowAmount = flowInput;
+        extraFiat = Math.max(0, flowAmount - baseDeposit);
+        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostPctAuto;
+        ecrNeeded = ecrRate>0 ? (extraFiat/ecrRate) : 0;
+      } else if(extraInput > 0){
+        extraFiat = extraInput;
+        flowAmount = baseDeposit + extraFiat;
+        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostPctAuto;
+        ecrNeeded = ecrRate>0 ? (extraFiat/ecrRate) : 0;
+      } else if(ecrInput > 0){
+        ecrNeeded = ecrInput;
+        extraFiat = ecrRate>0 ? (ecrNeeded*ecrRate) : 0;
+        flowAmount = baseDeposit + extraFiat;
+        boostPct = baseDeposit>0 ? (flowAmount/baseDeposit*100) : boostPctAuto;
+      } else if(boostPctInput > 0){
+        boostPct = boostPctInput;
+        flowAmount = baseDeposit * (boostPct/100);
+        extraFiat = Math.max(0, flowAmount - baseDeposit);
+        ecrNeeded = ecrRate>0 ? (extraFiat/ecrRate) : 0;
+      }
+    }
+
+    // write back fields (even in manual, we keep values consistent)
+    document.getElementById("boostPct").value = fmt(boostPct) + "%";
     document.getElementById("boostedAmount").value = fmt(flowAmount) + " " + currency;
     document.getElementById("extraFiat").value = fmt(extraFiat) + " ₮";
     document.getElementById("ecrNeeded").value = fmt(ecrNeeded) + " ECR";
 
+    // schedule
     let result;
-
     if(activeTab === "7"){
-      result = buildSchedule({
-        flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet,
-        horizonDays: 7
-      });
+      result = buildSchedule({ flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet, horizonDays: 7 });
     } else if(activeTab === "15"){
-      result = buildSchedule({
-        flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet,
-        horizonDays: 15
-      });
+      result = buildSchedule({ flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet, horizonDays: 15 });
     } else if(activeTab === "30"){
-      result = buildSchedule({
-        flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet,
-        horizonDays: 30
-      });
+      result = buildSchedule({ flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet, horizonDays: 30 });
     } else if(activeTab === "2m"){
       const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
       const endDate = addMonths(startDate, 2);
-      result = buildSchedule({
-        flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet,
-        horizonEndDate: endDate
-      });
+      result = buildSchedule({ flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet, horizonEndDate: endDate });
     } else {
       const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
       const endDate = addMonths(startDate, 6);
-      result = buildSchedule({
-        flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet,
-        horizonEndDate: endDate
-      });
+      result = buildSchedule({ flowAmount, depositDate, startRatePct, rateStepPct, startNextDay, withdrawSet, horizonEndDate: endDate });
     }
 
     renderTable(result.rows, currency);
@@ -730,16 +759,15 @@
     const kpiWrap = document.getElementById("kpiWrap");
     kpiWrap.style.display = "grid";
     document.getElementById("kpiDeposit").textContent = fmtMoney(flowAmount, currency);
-    document.getElementById("kpiMeta").textContent = "Withdraw dates: " + getWithdrawDates().length + "/10";
+    document.getElementById("kpiMeta").textContent = "Mode: " + (ecrMode==="manual" ? "manual" : "auto") + " | Withdraw dates: " + getWithdrawDates().length + "/10";
     document.getElementById("kpiWallet").textContent = fmtMoney(result.walletEnd, currency);
     document.getElementById("kpiWithdrawn").textContent = "Withdrawn: " + fmtMoney(result.totalWithdrawn, currency);
     document.getElementById("kpiAccrued").textContent = fmtMoney(result.totalAccrued, currency);
 
     const sundays = result.rows.filter(x => x.weekday==="Sun").length;
-    document.getElementById("kpiDays").textContent =
-      "Paid days: " + result.paidDays + " | Sundays: " + sundays;
+    document.getElementById("kpiDays").textContent = "Paid days: " + result.paidDays + " | Sundays: " + sundays;
 
-    // for CSV
+    // CSV data
     window.__lastRows = result.rows.map((r,i)=>({
       Day: i+1,
       Date: r.date.toISOString().slice(0,10),
@@ -762,6 +790,8 @@
     withdrawListEl.appendChild(createWithdrawRow(""));
     syncWithdrawMeta();
 
+    setAuto();
+    setTab("7");
     calculate();
   })();
 
@@ -774,6 +804,7 @@
   document.getElementById("tab2m").addEventListener("click", ()=>setTab("2m"));
   document.getElementById("tab6m").addEventListener("click", ()=>setTab("6m"));
 
+  // recalculation triggers
   ["amount","depositDate","currency","startRate","rateStep","startNextDay","ecrRate"]
     .forEach(id => document.getElementById(id).addEventListener("input", calculate));
 </script>
