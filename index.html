@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Growing Flow</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background:#0b0f14; color:#e7eef7; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 22px; }
+    .card { background:#111826; border:1px solid #1f2a3a; border-radius: 16px; padding: 16px; }
+    h1 { margin: 0 0 8px; font-size: 22px; }
+    .sub { opacity:.85; margin: 0 0 16px; line-height:1.4; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    label { display:block; font-size: 12px; opacity:.9; margin-bottom:6px; }
+    input, select, button {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid #263246;
+      background:#0d1420;
+      color:#e7eef7;
+      outline: none;
+    }
+    input:focus, select:focus { border-color:#3b82f6; }
+    .row { display:flex; gap:10px; align-items:center; }
+    .row input[type="checkbox"] { width:auto; }
+    .btn { cursor:pointer; background:#1b2a44; border-color:#2b3b55; font-weight:600; }
+    .btn:hover { background:#223657; }
+    .muted { opacity:.8; font-size: 12px; line-height:1.45; }
+    .pill { display:inline-block; padding:6px 10px; border:1px solid #263246; border-radius: 999px; font-size: 12px; opacity:.9; }
+    .summary { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .kpi { background:#0d1420; border:1px solid #263246; border-radius: 14px; padding: 12px; }
+    .kpi .t { font-size: 12px; opacity:.8; margin-bottom:6px; }
+    .kpi .v { font-size: 18px; font-weight: 700; }
+    .kpi .s { font-size: 12px; opacity:.8; margin-top:6px; }
+    table { width:100%; border-collapse: collapse; overflow:hidden; border-radius: 14px; }
+    thead th {
+      text-align:left; font-size: 12px; opacity:.85;
+      padding: 10px; background:#0d1420; border-bottom:1px solid #263246;
+      position: sticky; top: 0;
+    }
+    tbody td { padding: 10px; border-bottom:1px solid #1f2a3a; font-size: 13px; }
+    tbody tr:hover { background:#0f1726; }
+    .tabs { display:flex; gap:8px; margin-top: 14px; flex-wrap: wrap; }
+    .tab { width:auto; padding: 8px 10px; border-radius: 999px; border:1px solid #263246; background:#0d1420; cursor:pointer; font-weight:600; font-size: 12px; }
+    .tab.active { border-color:#3b82f6; }
+    .sectionTitle { margin: 16px 0 8px; font-size: 14px; opacity: .9; font-weight: 700; }
+    .foot { margin-top: 14px; font-size: 12px; opacity: .8; line-height: 1.45; }
+    .mono { font-variant-numeric: tabular-nums; }
+    @media (max-width: 900px){
+      .grid, .grid3, .summary { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Growing Flow</h1>
+      <p class="sub">
+        Калькулятор щоденних нарахувань GF з ростом ставки: Day 1 = 0.3%, далі +0.01% щодня.
+        У неділю винагорода не нараховується.
+      </p>
+
+      <div class="grid3">
+        <div>
+          <label>Сума депозиту</label>
+          <input id="amount" type="number" min="0" step="0.01" value="1000" />
+        </div>
+
+        <div>
+          <label>Дата депозиту</label>
+          <input id="depositDate" type="date" />
+        </div>
+
+        <div>
+          <label>Валюта (просто відображення)</label>
+          <input id="currency" type="text" value="USD" />
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div class="grid">
+        <div class="card" style="padding:12px; border-radius:14px;">
+          <div class="sectionTitle">Налаштування нарахувань</div>
+
+          <div class="grid">
+            <div>
+              <label>Стартова ставка Day 1 (%)</label>
+              <input id="startRate" type="number" step="0.01" value="0.30" />
+            </div>
+            <div>
+              <label>Щоденний приріст ставки (%)</label>
+              <input id="rateStep" type="number" step="0.01" value="0.01" />
+            </div>
+          </div>
+
+          <div style="height:8px"></div>
+
+          <div class="row">
+            <input id="compound" type="checkbox" checked />
+            <label for="compound" style="margin:0">Без виводу (компаундинг): додавати винагороду до балансу</label>
+          </div>
+
+          <div class="row" style="margin-top:6px;">
+            <input id="startNextDay" type="checkbox" />
+            <label for="startNextDay" style="margin:0">Починати нарахування з наступного дня після депозиту</label>
+          </div>
+
+          <div class="row" style="margin-top:6px;">
+            <input id="rateGrowsOnSundays" type="checkbox" checked />
+            <label for="rateGrowsOnSundays" style="margin:0">Ставка все одно зростає по календарю у неділю (навіть якщо винагорода 0)</label>
+          </div>
+
+          <div class="muted" style="margin-top:10px;">
+            Примітка: якщо зняти галочку про ріст ставки у неділю, тоді і ставка, і винагорода пропускають неділю.
+          </div>
+        </div>
+
+        <div class="card" style="padding:12px; border-radius:14px;">
+          <div class="sectionTitle">ECR boost (опційно)</div>
+
+          <div class="grid">
+            <div>
+              <label>Сума поповнення для boost</label>
+              <input id="topup" type="number" min="0" step="0.01" value="0" />
+            </div>
+            <div>
+              <label>Мультиплікатор (auto за таблицею)</label>
+              <input id="boostPct" type="text" readonly value="100%" />
+            </div>
+          </div>
+
+          <div class="muted" style="margin-top:10px;">
+            Логіка: якщо введеш суму поповнення, підбереться відсоток з твоєї таблиці, і базовий депозит помножиться на цей відсоток.
+          </div>
+
+          <div class="muted" style="margin-top:10px;">
+            Таблиця: 100=130%, 500=140%, 1000=150%, 2500=160%, 5000=180%, 10000=200%, 25000=210%, 50000=230%, 100000=250%, 250000=260%, 500000=270%, 1000000=280%
+          </div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+      <div class="grid">
+        <button class="btn" id="calcBtn">Розрахувати</button>
+        <div class="row" style="justify-content:flex-end;">
+          <span class="pill mono" id="rangeLabel">Готово</span>
+        </div>
+      </div>
+
+      <div class="summary" id="kpiWrap" style="display:none;">
+        <div class="kpi">
+          <div class="t">Стартовий баланс (з boost)</div>
+          <div class="v mono" id="kpiStart">0</div>
+          <div class="s mono" id="kpiStart2"></div>
+        </div>
+        <div class="kpi">
+          <div class="t">Результат (обраний горизонт)</div>
+          <div class="v mono" id="kpiEnd">0</div>
+          <div class="s mono" id="kpiGain">0</div>
+        </div>
+        <div class="kpi">
+          <div class="t">Сумарно нараховано</div>
+          <div class="v mono" id="kpiRewards">0</div>
+          <div class="s mono" id="kpiDaysPaid">0</div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" id="tab30">30 днів</button>
+        <button class="tab" id="tab6m">6 місяців</button>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div style="max-height: 520px; overflow:auto; border-radius:14px; border:1px solid #263246;">
+        <table>
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>Date</th>
+              <th>Weekday</th>
+              <th>Rate %</th>
+              <th>Reward</th>
+              <th>Balance end</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="foot">
+        Якщо ти хочеш, я можу під це зробити ще версію в Google Sheets / Excel або міні-сторінку з кнопкою Export CSV.
+      </div>
+    </div>
+  </div>
+
+<script>
+  function fmt(n) {
+    if (!isFinite(n)) return "0";
+    return new Intl.NumberFormat("en-US", { maximumFractionDigits: 6 }).format(n);
+  }
+
+  function fmtMoney(n, currency) {
+    if (!isFinite(n)) return "0";
+    return `${fmt(n)} ${currency}`;
+  }
+
+  function weekdayName(d) {
+    return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()];
+  }
+
+  function addDays(date, days) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
+  function addMonths(date, months) {
+    const d = new Date(date);
+    const day = d.getDate();
+    d.setMonth(d.getMonth() + months);
+
+    // корекція якщо місяць коротший
+    if (d.getDate() < day) d.setDate(0);
+    return d;
+  }
+
+  function parseDateInput(value) {
+    // value: YYYY-MM-DD
+    const [y,m,dd] = value.split("-").map(Number);
+    return new Date(y, m - 1, dd);
+  }
+
+  function boostFromTopup(topup) {
+    const tiers = [
+      { min: 100, pct: 130 },
+      { min: 500, pct: 140 },
+      { min: 1000, pct: 150 },
+      { min: 2500, pct: 160 },
+      { min: 5000, pct: 180 },
+      { min: 10000, pct: 200 },
+      { min: 25000, pct: 210 },
+      { min: 50000, pct: 230 },
+      { min: 100000, pct: 250 },
+      { min: 250000, pct: 260 },
+      { min: 500000, pct: 270 },
+      { min: 1000000, pct: 280 },
+    ];
+
+    let pct = 100;
+    for (const t of tiers) {
+      if (topup >= t.min) pct = t.pct;
+    }
+    return pct;
+  }
+
+  function buildSchedule({
+    principal,
+    depositDate,
+    startRatePct,
+    rateStepPct,
+    compound,
+    startNextDay,
+    rateGrowsOnSundays,
+    horizonDays,
+    horizonEndDate
+  }) {
+    const rows = [];
+    let balance = principal;
+    let totalRewards = 0;
+    let paidDays = 0;
+
+    const startDate = startNextDay ? addDays(depositDate, 1) : new Date(depositDate);
+
+    // визначаємо кінець
+    let endDateExclusive = null;
+    if (typeof horizonDays === "number") {
+      endDateExclusive = addDays(startDate, horizonDays); // exclusive
+    } else if (horizonEndDate instanceof Date) {
+      // exclusive: наступний день після endDate
+      endDateExclusive = addDays(horizonEndDate, 1);
+    } else {
+      throw new Error("No horizon specified");
+    }
+
+    // Day index: 1..N по календарю від startDate
+    let dayIndex = 1;
+    for (let d = new Date(startDate); d < endDateExclusive; d = addDays(d, 1), dayIndex++) {
+      const isSunday = (d.getDay() === 0);
+      const weekday = weekdayName(d);
+
+      // ставка
+      // Якщо rateGrowsOnSundays=true: dayIndex завжди збільшується по календарю
+      // Якщо false: dayIndex для ставки збільшується лише в дні, коли програма "працює" (не Sunday)
+      // Реалізуємо через окремий лічильник paidOrCalendarIndex
+    }
+    // Перерахунок з правильним індексом ставки
+    rows.length = 0;
+    balance = principal;
+    totalRewards = 0;
+    paidDays = 0;
+
+    let rateIndex = 1; // індекс для ставки
+
+    for (let d = new Date(startDate); d < endDateExclusive; d = addDays(d, 1)) {
+      const isSunday = (d.getDay() === 0);
+      const weekday = weekdayName(d);
+
+      const ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
+
+      let reward = 0;
+      let note = "";
+
+      if (isSunday) {
+        reward = 0;
+        note = "No rewards (Sunday)";
+        if (rateGrowsOnSundays) {
+          rateIndex += 1;
+        } else {
+          // ставка не рухається
+        }
+      } else {
+        reward = balance * (ratePct / 100);
+        paidDays += 1;
+        totalRewards += reward;
+
+        if (compound) {
+          balance += reward;
+          note = "Compounded";
+        } else {
+          note = "Not compounded";
+        }
+        rateIndex += 1;
+      }
+
+      rows.push({
+        date: new Date(d),
+        weekday,
+        ratePct,
+        reward,
+        balanceEnd: balance,
+        note
+      });
+    }
+
+    return { rows, startDate, principalStart: principal, endBalance: balance, totalRewards, paidDays };
+  }
+
+  function render({ rows, currency, horizonLabel, principalStart, endBalance, totalRewards, paidDays, startDate }) {
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+
+    rows.forEach((r, idx) => {
+      const tr = document.createElement("tr");
+      const dateStr = r.date.toISOString().slice(0,10);
+      tr.innerHTML = `
+        <td class="mono">${idx + 1}</td>
+        <td class="mono">${dateStr}</td>
+        <td class="mono">${r.weekday}</td>
+        <td class="mono">${fmt(r.ratePct)}%</td>
+        <td class="mono">${fmtMoney(r.reward, currency)}</td>
+        <td class="mono">${fmtMoney(r.balanceEnd, currency)}</td>
+        <td>${r.note}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("rangeLabel").textContent = `Horizon: ${horizonLabel} | Start: ${startDate.toISOString().slice(0,10)}`;
+
+    const kpiWrap = document.getElementById("kpiWrap");
+    kpiWrap.style.display = "grid";
+
+    document.getElementById("kpiStart").textContent = fmtMoney(principalStart, currency);
+    document.getElementById("kpiStart2").textContent = `Rows: ${rows.length}`;
+
+    document.getElementById("kpiEnd").textContent = fmtMoney(endBalance, currency);
+    const gain = endBalance - principalStart;
+    document.getElementById("kpiGain").textContent = `Gain: ${fmtMoney(gain, currency)}`;
+
+    document.getElementById("kpiRewards").textContent = fmtMoney(totalRewards, currency);
+    document.getElementById("kpiDaysPaid").textContent = `Paid days: ${paidDays} | Sundays skipped: ${rows.filter(x => x.weekday==="Sun").length}`;
+  }
+
+  // UI state
+  let activeTab = "30";
+
+  function setTab(tab) {
+    activeTab = tab;
+    document.getElementById("tab30").classList.toggle("active", tab === "30");
+    document.getElementById("tab6m").classList.toggle("active", tab === "6m");
+    calculate();
+  }
+
+  function calculate() {
+    const amount = Number(document.getElementById("amount").value || 0);
+    const currency = (document.getElementById("currency").value || "USD").trim();
+    const dateVal = document.getElementById("depositDate").value;
+
+    if (!dateVal) {
+      alert("Вкажи дату депозиту");
+      return;
+    }
+
+    const depositDate = parseDateInput(dateVal);
+
+    const startRatePct = Number(document.getElementById("startRate").value || 0.3);
+    const rateStepPct = Number(document.getElementById("rateStep").value || 0.01);
+
+    const compound = document.getElementById("compound").checked;
+    const startNextDay = document.getElementById("startNextDay").checked;
+    const rateGrowsOnSundays = document.getElementById("rateGrowsOnSundays").checked;
+
+    const topup = Number(document.getElementById("topup").value || 0);
+    const boostPct = boostFromTopup(topup);
+    document.getElementById("boostPct").value = `${boostPct}%`;
+
+    const principal = amount * (boostPct / 100);
+
+    let result;
+    if (activeTab === "30") {
+      result = buildSchedule({
+        principal,
+        depositDate,
+        startRatePct,
+        rateStepPct,
+        compound,
+        startNextDay,
+        rateGrowsOnSundays,
+        horizonDays: 30
+      });
+      render({
+        ...result,
+        currency,
+        horizonLabel: "30 days"
+      });
+    } else {
+      // 6 календарних місяців від дати старту нарахування
+      const startDate = startNextDay ? addDays(depositDate, 1) : new Date(depositDate);
+      const endDate = addMonths(startDate, 6);
+      result = buildSchedule({
+        principal,
+        depositDate,
+        startRatePct,
+        rateStepPct,
+        compound,
+        startNextDay,
+        rateGrowsOnSundays,
+        horizonEndDate: endDate
+      });
+      render({
+        ...result,
+        currency,
+        horizonLabel: `6 months (to ${endDate.toISOString().slice(0,10)})`
+      });
+    }
+  }
+
+  // init date = today (local)
+  (function init(){
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth()+1).padStart(2,"0");
+    const dd = String(now.getDate()).padStart(2,"0");
+    document.getElementById("depositDate").value = `${yyyy}-${mm}-${dd}`;
+    calculate();
+  })();
+
+  document.getElementById("calcBtn").addEventListener("click", calculate);
+  document.getElementById("tab30").addEventListener("click", () => setTab("30"));
+  document.getElementById("tab6m").addEventListener("click", () => setTab("6m"));
+
+  ["amount","depositDate","currency","startRate","rateStep","compound","startNextDay","rateGrowsOnSundays","topup"]
+    .forEach(id => document.getElementById(id).addEventListener("input", calculate));
+</script>
+</body>
+</html>
