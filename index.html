@@ -69,11 +69,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap:14px;
   }
-  @media (max-width: 900px){
-    .grid3{ grid-template-columns: 1fr; }
-    .grid2{ grid-template-columns: 1fr; }
-    h1{ font-size:28px; }
-  }
 
   .box{
     border:2px solid var(--black);
@@ -111,14 +106,11 @@
   input:focus, select:focus{ border-color:var(--red); }
   input[readonly], select:disabled{ opacity:0.9; }
 
-  /* suffix pills - centered and always inside border */
-  .field{
-    position:relative;
-  }
+  /* suffix pills always inside border and centered */
+  .field{ position:relative; }
   .field.hasSuffix input,
-  .field.hasSuffix select{
-    padding-right:78px;
-  }
+  .field.hasSuffix select{ padding-right:78px; }
+
   .suffix{
     position:absolute;
     right:10px;
@@ -204,7 +196,6 @@
     gap:12px;
     margin-top:14px;
   }
-  @media (max-width: 900px){ .summary{ grid-template-columns: 1fr; } }
 
   .kpi{
     border:2px solid var(--black);
@@ -235,6 +226,7 @@
     overflow:auto;
     max-height:520px;
     background:var(--white);
+    -webkit-overflow-scrolling: touch;
   }
   table{
     width:100%;
@@ -266,7 +258,6 @@
     gap:10px;
     margin-top:10px;
   }
-  @media (max-width: 900px){ .withdrawList{ grid-template-columns: 1fr; } }
 
   .withdrawItem{
     display:flex;
@@ -305,6 +296,66 @@
     gap:10px;
     flex-wrap:wrap;
     margin-bottom:10px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px){
+    .grid3{ grid-template-columns: 1fr; }
+    .grid2{ grid-template-columns: 1fr; }
+    .summary{ grid-template-columns: 1fr; }
+    .withdrawList{ grid-template-columns: 1fr; }
+    h1{ font-size:28px; }
+  }
+
+  @media (max-width: 520px){
+    body{ background-size: 85%; }
+    .wrap{ padding:12px; }
+    .card{ padding:14px; border-radius:16px; border-width:3px; }
+
+    .topbar{ flex-direction:column; align-items:flex-start; }
+    .topbar img{ margin-top:8px; height:30px; }
+    h1{ font-size:26px; }
+
+    .note{ font-size:12px; }
+
+    .box{ padding:12px; }
+    .boxTitle{ font-size:16px; }
+
+    input, select, button{
+      padding:11px 12px;
+      font-size:14px;
+      border-radius:12px;
+    }
+
+    .field.hasSuffix input,
+    .field.hasSuffix select{ padding-right:66px; }
+
+    .suffix{
+      right:8px;
+      padding:2px 8px;
+      font-size:11px;
+    }
+
+    .rowBtns{ gap:8px; }
+    .btn, .smallBtn{
+      width:100%;
+      text-align:center;
+    }
+
+    .tabs{ gap:8px; }
+    .tab{ width:auto; }
+
+    .tableWrap{ max-height:420px; }
+    table{ min-width:860px; }
+    tbody td{ padding:9px; font-size:12px; }
+  }
+
+  @media (max-width: 360px){
+    h1{ font-size:24px; }
+    .field.hasSuffix input,
+    .field.hasSuffix select{ padding-right:60px; }
+    .suffix{ padding:2px 7px; }
+    table{ min-width:820px; }
   }
 </style>
 </head>
@@ -358,7 +409,6 @@
           <span class="suffix" id="fiatSymbol">₮</span>
         </div>
 
-        <!-- IMPORTANT: NO % suffix here (you asked to remove it) -->
         <div class="field">
           <label>Flow multiplier</label>
           <select id="multiplier"></select>
@@ -491,7 +541,6 @@
 <script>
   const $ = (id)=>document.getElementById(id);
 
-  // Tables
   const USDT_TIERS = [
     { min:100, pct:130 },
     { min:500, pct:140 },
@@ -507,7 +556,6 @@
     { min:1000000, pct:280 },
   ];
 
-  // EURO table is "bonus", multiplier = 100 + bonus
   const EURO_TIERS = [
     { min:50, bonus:50 },
     { min:100, bonus:60 },
@@ -565,7 +613,6 @@
     box.textContent=msg;
   }
 
-  // Withdraw list
   const withdrawListEl = $("withdrawList");
   const addWithdrawBtn = $("addWithdrawBtn");
 
@@ -616,14 +663,12 @@
     syncWithdrawMeta();
   });
 
-  // Multiplier select
   function fillMultiplierOptions(){
     const ccy = $("currency").value;
     const sel = $("multiplier");
     sel.innerHTML = "";
 
     if(ccy === "USDT"){
-      // e.g. from 1000 -> 150%
       for(const t of USDT_TIERS){
         const opt = document.createElement("option");
         opt.value = String(t.pct);
@@ -631,7 +676,6 @@
         sel.appendChild(opt);
       }
     } else {
-      // e.g. from 1000 -> +100% (200%)
       for(const t of EURO_TIERS){
         const mult = 100 + t.bonus;
         const opt = document.createElement("option");
@@ -646,13 +690,11 @@
     const dep = toNum($("amount").value);
     const ccy = $("currency").value;
     const sel = $("multiplier");
-
     if(!Number.isFinite(dep) || dep <= 0) return;
 
     if(ccy === "USDT"){
       let pct = 100;
       for(const t of USDT_TIERS) if(dep >= t.min) pct = t.pct;
-      // select matching option if exists, else closest lower
       const opts = Array.from(sel.options);
       let best = opts[0];
       for(const o of opts){
@@ -678,20 +720,14 @@
     $("depositSuffix").textContent = ccy;
     $("flowSuffix").textContent = ccy;
 
-    // fiat symbol changes with currency (you asked)
     const sym = (ccy === "EURO") ? "€" : "₮";
     $("fiatSymbol").textContent = sym;
     $("fiatSymbol2").textContent = sym;
   }
 
   function computeEcrBlock(){
-    // ECR block calculates:
-    // flowOpensOn = deposit * multiplier%
-    // extraNeeded = flow - deposit
-    // ecrRequired = extra / ecrRate
     showErr("");
 
-    const ccy = $("currency").value;
     const dep = toNum($("amount").value);
     const ecrRate = toNum($("ecrRate").value);
     const multPct = toNum($("multiplier").value);
@@ -717,13 +753,9 @@
     $("extraNeeded").value = fmt(extra, 8);
     $("ecrRequired").value = fmt(ecr, 8);
 
-    return { ccy, dep, flow, extra, ecrRate, ecr };
+    return { ccy: $("currency").value, dep, flow, extra, ecrRate, ecr };
   }
 
-  // Algorithm:
-  // - Sundays: no reward and no +0.01
-  // - Withdraw date: reset wallet=0 and rate progress reset; no reward that day
-  // - Paid days: rate = startRate + (rateIndex-1)*rateStep; rateIndex++ only on paid days
   function buildSchedule({
     flowAmount,
     depositDate,
@@ -804,7 +836,6 @@
     const core = computeEcrBlock();
     if(!core) return;
 
-    const currency = core.ccy;
     const dateVal = $("depositDate").value;
     const depositDate = parseDateInput(dateVal);
     if(!depositDate){
@@ -826,7 +857,6 @@
     const startNextDay = $("startNextDay").checked;
     const withdrawSet = getWithdrawSet();
 
-    // period
     const activeTab = document.querySelector(".tab.active")?.dataset?.tab || "7";
     const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
 
@@ -847,14 +877,14 @@
       endExclusive
     });
 
-    renderTable(result.rows, currency);
+    renderTable(result.rows, core.ccy);
 
     $("kpiWrap").style.display = "grid";
-    $("kpiFlow").textContent = fmtMoney(core.flow, currency);
-    $("kpiMeta").textContent = `Currency: ${currency} | Withdraw dates: ${getWithdrawDates().length}/10 | Period: ${activeTab}`;
-    $("kpiWallet").textContent = fmtMoney(result.walletEnd, currency);
-    $("kpiWithdrawn").textContent = "Withdrawn: " + fmtMoney(result.totalWithdrawn, currency);
-    $("kpiAccrued").textContent = fmtMoney(result.totalAccrued, currency);
+    $("kpiFlow").textContent = fmtMoney(core.flow, core.ccy);
+    $("kpiMeta").textContent = `Currency: ${core.ccy} | Withdraw dates: ${getWithdrawDates().length}/10 | Period: ${activeTab}`;
+    $("kpiWallet").textContent = fmtMoney(result.walletEnd, core.ccy);
+    $("kpiWithdrawn").textContent = "Withdrawn: " + fmtMoney(result.totalWithdrawn, core.ccy);
+    $("kpiAccrued").textContent = fmtMoney(result.totalAccrued, core.ccy);
     $("kpiDays").textContent = "Paid days: " + result.paidDays;
 
     window.__lastRows = result.rows.map((r,i)=>({
@@ -896,7 +926,6 @@
     URL.revokeObjectURL(url);
   }
 
-  // Events
   $("currency").addEventListener("change", ()=>{
     syncCurrencyUI();
     fillMultiplierOptions();
@@ -943,7 +972,6 @@
   $("calcBtn").addEventListener("click", calculate);
   $("exportBtn").addEventListener("click", exportCSV);
 
-  // Init
   (function init(){
     const now = new Date();
     $("depositDate").value = now.toISOString().slice(0,10);
