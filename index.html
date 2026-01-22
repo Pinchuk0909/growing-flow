@@ -39,6 +39,8 @@
     align-items:flex-start;
     justify-content:space-between;
     gap:16px;
+
+    position:relative;
   }
   h1{
     margin:0;
@@ -61,6 +63,12 @@
     flex:1;
     display:flex;
     justify-content:center;
+
+    position:absolute;
+    left:50%;
+    top:0;
+    transform:translateX(-50%);
+    pointer-events:auto;
   }
 
   .regBlock{
@@ -97,6 +105,13 @@
     0%   { box-shadow: 0 0 0 rgba(192,0,0,0); transform: translateY(0); }
     50%  { box-shadow: 0 0 22px rgba(192,0,0,0.55); transform: translateY(1px); }
     100% { box-shadow: 0 0 0 rgba(192,0,0,0); transform: translateY(0); }
+  }
+
+  .regText{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
   }
 
   .regSmall{
@@ -361,6 +376,7 @@
     margin-bottom:10px;
   }
 
+  /* Responsive */
   @media (max-width: 900px){
     .grid3{ grid-template-columns: 1fr; }
     .grid2{ grid-template-columns: 1fr; }
@@ -374,9 +390,17 @@
     .wrap{ padding:12px; }
     .card{ padding:14px; border-radius:16px; border-width:3px; }
 
-    .topbar{ flex-direction:column; align-items:flex-start; }
-    .topbarCenter{ justify-content:flex-start; width:100%; }
+    .topbar{ flex-direction:column; align-items:flex-start; position:static; }
+    .topbarCenter{
+      justify-content:flex-start;
+      width:100%;
+      position:static;
+      left:auto;
+      top:auto;
+      transform:none;
+    }
     .regBlock{ align-items:flex-start; text-align:left; margin-top:8px; }
+    .regText{ align-items:flex-start; }
     .topbar img{ margin-top:8px; height:30px; }
     h1{ font-size:26px; }
 
@@ -509,17 +533,17 @@
 
       <div class="topbarCenter">
         <div class="regBlock">
-  <a class="regBtn" id="regBtn" href="#" target="_blank" rel="noopener">REGISTRATION</a>
+          <a class="regBtn" id="regBtn" href="#" target="_blank" rel="noopener">REGISTRATION</a>
 
-  <div class="regText">
-    <div class="regSmall">They helped you, so help them too.</div>
-    <div class="regMeta">
-      Developed Pinchuk Alexander<br>
-      EMAIL:&nbsp; ah.althouse@gmail.com
-    </div>
-  </div>
-</div>
-
+          <div class="regText">
+            <div class="regSmall">They helped you, so help them too.</div>
+            <div class="regMeta">
+              Developed Pinchuk Alexander<br>
+              EMAIL:&nbsp; ah.althouse@gmail.com
+            </div>
+          </div>
+        </div>
+      </div>
 
       <img src="cashflow.png" alt="CASHFLOW" />
     </div>
@@ -896,9 +920,6 @@
     $("fiatSymbol2").textContent = sym;
   }
 
-  /* ===========================
-     REGISTRATION LINK (JS)
-     =========================== */
   function syncRegLink(){
     const ccy = $("currency").value;
     const btn = $("regBtn");
