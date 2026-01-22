@@ -54,6 +54,63 @@
     margin-top:4px;
   }
 
+  /* ===========================
+     REGISTRATION (CSS)
+     =========================== */
+  .topbarCenter{
+    flex:1;
+    display:flex;
+    justify-content:center;
+  }
+
+  .regBlock{
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    margin-top:2px;
+  }
+
+  .regBtn{
+    display:inline-block;
+    width:auto;
+    padding:10px 16px;
+    border-radius:999px;
+    border:2px solid var(--black);
+    background:var(--red);
+    color:var(--white);
+    font-weight:900;
+    text-decoration:none;
+    cursor:pointer;
+    line-height:1;
+    box-shadow: 0 0 0 rgba(192,0,0,0);
+    animation: regGlow 1.6s ease-in-out infinite;
+  }
+  .regBtn:hover{
+    filter:brightness(0.95);
+    animation: none;
+    box-shadow: 0 0 22px rgba(192,0,0,0.55);
+  }
+
+  @keyframes regGlow{
+    0%   { box-shadow: 0 0 0 rgba(192,0,0,0); transform: translateY(0); }
+    50%  { box-shadow: 0 0 22px rgba(192,0,0,0.55); transform: translateY(1px); }
+    100% { box-shadow: 0 0 0 rgba(192,0,0,0); transform: translateY(0); }
+  }
+
+  .regSmall{
+    font-size:12px;
+    font-weight:800;
+    line-height:1.25;
+  }
+
+  .regMeta{
+    font-size:12px;
+    font-weight:800;
+    line-height:1.25;
+  }
+
   .grid3{
     display:grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -321,6 +378,8 @@
     .card{ padding:14px; border-radius:16px; border-width:3px; }
 
     .topbar{ flex-direction:column; align-items:flex-start; }
+    .topbarCenter{ justify-content:flex-start; width:100%; }
+    .regBlock{ align-items:flex-start; text-align:left; margin-top:8px; }
     .topbar img{ margin-top:8px; height:30px; }
     h1{ font-size:26px; }
 
@@ -450,6 +509,18 @@
 
     <div class="topbar">
       <h1>Growing Flow Calculator</h1>
+
+      <div class="topbarCenter">
+        <div class="regBlock">
+          <a class="regBtn" id="regBtn" href="#" target="_blank" rel="noopener">REGISTRATION</a>
+          <div class="regSmall">They helped you, so help them too.</div>
+          <div class="regMeta">
+            Developed Pinchuk Alexander<br>
+            EMAIL:&nbsp; ah.althouse@gmail.com
+          </div>
+        </div>
+      </div>
+
       <img src="cashflow.png" alt="CASHFLOW" />
     </div>
 
@@ -825,6 +896,19 @@
     $("fiatSymbol2").textContent = sym;
   }
 
+  /* ===========================
+     REGISTRATION LINK (JS)
+     =========================== */
+  function syncRegLink(){
+    const ccy = $("currency").value;
+    const btn = $("regBtn");
+    if(!btn) return;
+
+    btn.href = (ccy === "EURO")
+      ? "https://eur.cashflow.fund/ref/N6ouTKSq"
+      : "https://vip.cashflow.fund/ref/dTguTKSq";
+  }
+
   function computeEcrBlock(){
     showErr("");
 
@@ -1028,6 +1112,7 @@
 
   $("currency").addEventListener("change", ()=>{
     syncCurrencyUI();
+    syncRegLink();
     fillMultiplierOptions();
     autoPickMultiplierByDeposit();
     computeEcrBlock();
@@ -1107,6 +1192,7 @@
     syncWithdrawMeta();
 
     syncCurrencyUI();
+    syncRegLink();
     fillMultiplierOptions();
     autoPickMultiplierByDeposit();
     computeEcrBlock();
