@@ -221,13 +221,23 @@
     font-family: monospace;
   }
 
-  .tableWrap{
 .tableWrap{
   margin-top:12px;
   border:2px solid var(--black);
   border-radius:14px;
   overflow:auto;
   max-height:520px;
+
+  background-image:
+    linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)),
+    url("table-bg.png");
+  background-repeat: repeat;
+  background-size: 220px 220px;
+  background-position: center center;
+  background-color: var(--white);
+
+  -webkit-overflow-scrolling: touch;
+}
 
   /* фон з твоїм логотипом */
   background:
@@ -244,6 +254,11 @@
     border-collapse:collapse;
     min-width: 980px;
   }
+  
+  table{ background: transparent; }
+  tbody tr{ background: transparent; }
+  tbody td{ background: transparent; }
+
   thead th{
     position:sticky;
     top:0;
