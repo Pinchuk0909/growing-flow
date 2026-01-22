@@ -54,12 +54,6 @@
     margin-top:4px;
   }
 
-  .note{
-    margin:10px 0 14px;
-    font-size:13px;
-    line-height:1.45;
-  }
-
   .grid3{
     display:grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -108,7 +102,6 @@
   input:focus, select:focus{ border-color:var(--red); }
   input[readonly], select:disabled{ opacity:0.9; }
 
-  /* suffix pills always inside border and centered */
   .field{ position:relative; }
   .field.hasSuffix input,
   .field.hasSuffix select{ padding-right:78px; }
@@ -221,43 +214,30 @@
     font-family: monospace;
   }
 
-.tableWrap{
-  margin-top:12px;
-  border:2px solid var(--black);
-  border-radius:14px;
-  overflow:auto;
-  max-height:520px;
-
-  background-image:
-    linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)),
-    url("table-bg.png");
-  background-repeat: repeat;
-  background-size: 220px 220px;
-  background-position: center center;
-  background-color: var(--white);
-
-  -webkit-overflow-scrolling: touch;
-}
-
-  /* фон з твоїм логотипом */
-  background:
-    linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)),
-    url("table-bg.png") repeat;
-
-  background-size: 220px 220px;
-  -webkit-overflow-scrolling: touch;
-}
-
+  /* ✅ FIXED: wrapper only scroll + border (NO background here) */
+  .tableWrap{
+    margin-top:12px;
+    border:2px solid var(--black);
+    border-radius:14px;
+    overflow:auto;
+    max-height:520px;
+    background:var(--white);
+    -webkit-overflow-scrolling: touch;
   }
+
+  /* ✅ Background belongs to TABLE, so no empty space on PC */
   table{
     width:100%;
     border-collapse:collapse;
-    min-width: 980px;
+    min-width:980px;
+
+    background-image:
+      linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)),
+      url("table-bg.png");
+    background-repeat:repeat;
+    background-size:220px 220px;
+    background-position:center center;
   }
-  
-  table{ background: transparent; }
-  tbody tr{ background: transparent; }
-  tbody td{ background: transparent; }
 
   thead th{
     position:sticky;
@@ -276,9 +256,9 @@
     font-size:13px;
     white-space:nowrap;
     font-family: monospace;
-    background: transparent;
-
+    background:transparent;
   }
+  tbody tr{ background:transparent; }
 
   .withdrawList{
     display:grid;
@@ -344,8 +324,6 @@
     .topbar img{ margin-top:8px; height:30px; }
     h1{ font-size:26px; }
 
-    .note{ font-size:12px; }
-
     .box{ padding:12px; }
     .boxTitle{ font-size:16px; }
 
@@ -387,8 +365,7 @@
   }
 
   /* ===========================
-     1) INFO BUTTON (CSS)
-     2) INFO WINDOW (CSS)
+     INFO BUTTON + WINDOW (CSS)
      =========================== */
   .ratesHeader{
     display:flex;
@@ -564,9 +541,6 @@
       </div>
 
       <div class="box">
-        <!-- ===========================
-             1) INFO BUTTON (HTML)
-             =========================== -->
         <div class="ratesHeader">
           <div class="boxTitle" style="margin:0;">Rates</div>
           <button class="infoBtn" id="infoBtn" type="button">Info</button>
@@ -594,9 +568,6 @@
       </div>
     </div>
 
-    <!-- ===========================
-         2) INFO WINDOW (HTML)
-         =========================== -->
     <div class="infoOverlay" id="infoOverlay" aria-hidden="true">
       <div class="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
         <div class="infoTop">
@@ -1101,9 +1072,6 @@
   $("calcBtn").addEventListener("click", calculate);
   $("exportBtn").addEventListener("click", exportCSV);
 
-  /* ===========================
-     4) OPEN/CLOSE LOGIC (JS)
-     =========================== */
   (function initInfo(){
     const btn = $("infoBtn");
     const overlay = $("infoOverlay");
