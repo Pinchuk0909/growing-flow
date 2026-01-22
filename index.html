@@ -34,50 +34,49 @@
     overflow:hidden;
   }
 
+  /* ===========================
+     TOPBAR (GRID) - FIXED LAYOUT
+     =========================== */
   .topbar{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:16px;
-
-    position:relative;
+    display:grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto;
+    gap:8px 16px;
+    align-items:start;
   }
+
   h1{
     margin:0;
     font-size:34px;
     line-height:1.05;
     color:var(--green);
     font-weight:800;
+    grid-column:1;
+    grid-row:1;
+    align-self:start;
   }
+
   .topbar img{
     height:34px;
     width:auto;
     display:block;
     margin-top:4px;
+    grid-column:3;
+    grid-row:1;
+    justify-self:end;
+    align-self:start;
   }
 
   /* ===========================
      REGISTRATION (CSS)
      =========================== */
-  .topbarCenter{
-    flex:1;
+  .regBtnWrap{
+    grid-column:2;
+    grid-row:1;
     display:flex;
     justify-content:center;
-
-    position:absolute;
-    left:50%;
-    top:0;
-    transform:translateX(-50%);
-    pointer-events:auto;
-  }
-
-  .regBlock{
-    text-align:center;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:6px;
-    margin-top:2px;
+    align-items:flex-start;
+    padding-top:2px;
   }
 
   .regBtn{
@@ -107,11 +106,14 @@
     100% { box-shadow: 0 0 0 rgba(192,0,0,0); transform: translateY(0); }
   }
 
-  .regText{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:6px;
+  /* Text goes BELOW the header row, centered, no overlap */
+  .regTextRow{
+    grid-column: 1 / -1;
+    grid-row: 2;
+    text-align:center;
+    font-weight:800;
+    line-height:1.25;
+    padding-top:2px;
   }
 
   .regSmall{
@@ -121,6 +123,7 @@
   }
 
   .regMeta{
+    margin-top:6px;
     font-size:12px;
     font-weight:800;
     line-height:1.25;
@@ -390,50 +393,15 @@
     .wrap{ padding:12px; }
     .card{ padding:14px; border-radius:16px; border-width:3px; }
 
-    .topbar{ flex-direction:column; align-items:flex-start; position:static; }
-    .topbarCenter{
-      justify-content:flex-start;
-      width:100%;
-      position:static;
-      left:auto;
-      top:auto;
-      transform:none;
+    .topbar{
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto auto;
+      gap:10px;
     }
-    .regBlock{ align-items:flex-start; text-align:left; margin-top:8px; }
-    .regText{ align-items:flex-start; }
-    .topbar img{ margin-top:8px; height:30px; }
-    h1{ font-size:26px; }
-
-    .box{ padding:12px; }
-    .boxTitle{ font-size:16px; }
-
-    input, select, button{
-      padding:11px 12px;
-      font-size:14px;
-      border-radius:12px;
-    }
-
-    .field.hasSuffix input,
-    .field.hasSuffix select{ padding-right:66px; }
-
-    .suffix{
-      right:8px;
-      padding:2px 8px;
-      font-size:11px;
-    }
-
-    .rowBtns{ gap:8px; }
-    .btn, .smallBtn{
-      width:100%;
-      text-align:center;
-    }
-
-    .tabs{ gap:8px; }
-    .tab{ width:auto; }
-
-    .tableWrap{ max-height:420px; }
-    table{ min-width:860px; }
-    tbody td{ padding:9px; font-size:12px; }
+    h1{ font-size:26px; grid-column:1; grid-row:1; }
+    .regBtnWrap{ grid-column:1; grid-row:2; justify-content:flex-start; }
+    .topbar img{ grid-column:1; grid-row:3; justify-self:start; height:30px; margin-top:0; }
+    .regTextRow{ grid-column:1; grid-row:4; text-align:left; }
   }
 
   @media (max-width: 360px){
@@ -531,21 +499,19 @@
     <div class="topbar">
       <h1>Growing Flow Calculator</h1>
 
-      <div class="topbarCenter">
-        <div class="regBlock">
-          <a class="regBtn" id="regBtn" href="#" target="_blank" rel="noopener">REGISTRATION</a>
-
-          <div class="regText">
-            <div class="regSmall">They helped you, so help them too.</div>
-            <div class="regMeta">
-              Developed Pinchuk Alexander<br>
-              EMAIL:&nbsp; ah.althouse@gmail.com
-            </div>
-          </div>
-        </div>
+      <div class="regBtnWrap">
+        <a class="regBtn" id="regBtn" href="#" target="_blank" rel="noopener">REGISTRATION</a>
       </div>
 
       <img src="cashflow.png" alt="CASHFLOW" />
+
+      <div class="regTextRow">
+        <div class="regSmall">They helped you, so help them too.</div>
+        <div class="regMeta">
+          Developed Pinchuk Alexander<br>
+          EMAIL:&nbsp; ah.althouse@gmail.com
+        </div>
+      </div>
     </div>
 
     <div class="grid3">
