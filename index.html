@@ -13,9 +13,9 @@
     --green:#00a000;
 
     /* currency colors */
-    --usdtA:#10b981; /* green */
+    --usdtA:#10b981;
     --usdtB:#059669;
-    --euroA:#3b82f6; /* blue */
+    --euroA:#3b82f6;
     --euroB:#2563eb;
   }
   *{ box-sizing:border-box; }
@@ -43,7 +43,7 @@
   /* ===========================
      TOPBAR (GRID)
      Title left, Button center, Logo right
-     Text moved to free space (between button and logo) in row 2
+     Text must be in the right block (under logo area)
      =========================== */
   .topbar{
     display:grid;
@@ -111,15 +111,16 @@
     100% { box-shadow: 0 0 0 rgba(192,0,0,0); transform: translateY(0); }
   }
 
-  /* moved text */
+  /* TEXT PLACEMENT: top right block (under logo) */
   .regTextRow{
-    grid-column:2 / 4;   /* between button and logo area */
+    grid-column:3;
     grid-row:2;
-    justify-self:center;
-    text-align:center;
+    justify-self:end;
+    text-align:right;
     font-weight:800;
     line-height:1.25;
-    padding-top:2px;
+    padding-top:0;
+    margin-top:-2px;
     max-width:520px;
   }
 
@@ -209,7 +210,7 @@
      CURRENCY HIGHLIGHT
      =========================== */
   #currency{
-    font-weight:900; /* currency text bolder */
+    font-weight:900;
   }
 
   .currencyField{
@@ -442,7 +443,7 @@
     h1{ font-size:26px; grid-column:1; grid-row:1; }
     .regBtnWrap{ grid-column:1; grid-row:2; justify-content:flex-start; }
     .topbar img{ grid-column:1; grid-row:3; justify-self:start; height:30px; margin-top:0; }
-    .regTextRow{ grid-column:1; grid-row:4; justify-self:start; text-align:left; max-width:none; }
+    .regTextRow{ grid-column:1; grid-row:4; justify-self:start; text-align:left; max-width:none; margin-top:0; }
   }
 
   @media (max-width: 360px){
@@ -567,7 +568,6 @@
         <input id="depositDate" type="date" />
       </div>
 
-      <!-- Currency highlight wrapper -->
       <div class="currencyField usdt" id="currencyField">
         <label>Currency</label>
         <select id="currency">
@@ -927,7 +927,6 @@
     $("fiatSymbol").textContent = sym;
     $("fiatSymbol2").textContent = sym;
 
-    /* highlight currency field */
     const cf = $("currencyField");
     cf.classList.remove("usdt","euro");
     cf.classList.add(ccy === "EURO" ? "euro" : "usdt");
