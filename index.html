@@ -985,7 +985,6 @@
 }){
   const rows=[];
   const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
-
   const bonusStopDate = addMonths(startDate, bonusStopAfterMonths);
 
   let currentFlow = Number(flowAmount);
@@ -1006,35 +1005,33 @@
 
     let ratePct = 0, reward = 0, note = "";
 
-    // ✅ фіксуємо потік на початок дня
-    const flowBefore = currentFlow;
-
     if(isWithdraw){
       totalWithdrawn += wallet;
       wallet = 0;
       rateIndex = 1;
       note = "Withdraw: reset (no reward today)";
+      // currentFlow не змінюємо, бо ти просив тільки списання reward
     }
     else if(isSunday){
       note = "Sunday: no reward";
+      // currentFlow не змінюється
     }
     else{
-      // ✅ ставка
-      ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
+      const flowBefore = currentFlow;
 
-      // ✅ reward від потоку на початок дня
+      ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
       reward = flowBefore * (ratePct / 100);
 
       wallet += reward;
       totalAccrued += reward;
       paidDays += 1;
 
-      // ✅ зменшуємо потік після виплати
+      // ✅ списуємо reward з потоку
       currentFlow = flowBefore - reward;
 
       note = "Paid day";
 
-      // ✅ +0.01% тільки перші 3 місяці (календарні, від старту нарахувань)
+      // ✅ +0.01% тільки перші 3 місяці
       if(d < bonusStopDate){
         rateIndex += 1;
       }
@@ -1045,7 +1042,7 @@
       weekday: weekdayName(d),
       ratePct,
       reward,
-      flowAmount: flowBefore,   // ✅ показуємо базу, від якої рахувався reward
+      flowAmount: currentFlow,   // ✅ ТЕПЕР це залишок після дня
       walletEnd: wallet,
       note
     });
