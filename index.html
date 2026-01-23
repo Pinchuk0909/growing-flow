@@ -376,20 +376,6 @@
   }
   .withdrawItem input{ flex:1; }
 
-  .topupList{
-    display:grid;
-    grid-template-columns: 1fr;
-    gap:10px;
-    margin-top:10px;
-  }
-  .topupItem{
-    display:grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap:8px;
-    align-items:center;
-  }
-  .topupItem input{ width:100%; }
-
   .xBtn{
     width:auto;
     padding:10px 12px;
@@ -427,7 +413,6 @@
     .grid2{ grid-template-columns: 1fr; }
     .summary{ grid-template-columns: 1fr; }
     .withdrawList{ grid-template-columns: 1fr; }
-    .topupItem{ grid-template-columns: 1fr; }
     h1{ font-size:28px; }
   }
 
@@ -639,12 +624,12 @@
         </div>
 
         <div class="withdrawList" id="withdrawList"></div>
-      </div>
 
-      <div class="box">
-        <div class="boxTitle">Reinvest dates</div>
+        <div style="height:12px;"></div>
+
+        <div class="boxTitle" style="margin:0 0 8px;">Reinvest dates</div>
         <div style="font-size:13px;font-weight:800;">
-          Add up to 10 dates. On reinvest date: wallet goes back into flow with the same multiplier, wallet resets, rate resets to 0.3 and then grows daily as usual. Reward is still paid that day (if not Sunday).
+          Add up to 10 dates. On reinvest date: wallet goes back into flow with multiplier, wallet resets, rate resets to 0.30 and keeps growing by 0.01 on paid days. Reward is paid that day (if not Sunday).
         </div>
 
         <div class="rowBtns">
@@ -654,9 +639,7 @@
 
         <div class="withdrawList" id="reinvestList"></div>
       </div>
-    </div>
 
-    <div class="grid2" style="margin-top:14px;">
       <div class="box">
         <div class="ratesHeader">
           <div class="boxTitle" style="margin:0;">Rates</div>
@@ -683,20 +666,6 @@
           </label>
         </div>
       </div>
-
-      <div class="box">
-        <div class="boxTitle">Flow top-ups</div>
-        <div style="font-size:13px;font-weight:800;">
-          Add up to 20 top-ups. On top-up date: amount is added into flow with the same multiplier.
-        </div>
-
-        <div class="rowBtns">
-          <button class="smallBtn red" id="addTopupBtn" type="button">+ Add top-up</button>
-          <button class="smallBtn" id="clearTopupBtn" type="button">Clear</button>
-        </div>
-
-        <div class="topupList" id="topupList"></div>
-      </div>
     </div>
 
     <div class="infoOverlay" id="infoOverlay" aria-hidden="true">
@@ -711,10 +680,9 @@
           After reward, flow balance decreases by reward amount.<br>
           Daily bonus +0.01% works only for first 3 months from accrual start.<br>
           Sunday: no reward and no bonus increase.<br><br>
-          Rewards go to wallet (no reinvest by default).<br>
+          Rewards go to wallet (no reinvest).<br>
           Withdraw resets wallet and rate progress. No reward on that day.<br>
-          Reinvest: wallet -> flow with multiplier, wallet resets, rate resets to 0.3 and continues growing daily. Reward is paid that day (if not Sunday).<br>
-          Top-up: adds amount into flow with multiplier.
+          Reinvest: wallet -> flow with multiplier, wallet resets, rate resets to 0.30, reward is paid that day (if not Sunday).<br>
         </div>
       </div>
     </div>
@@ -725,9 +693,6 @@
       <button class="tab" data-tab="30" type="button">30 days</button>
       <button class="tab" data-tab="2m" type="button">2 months</button>
       <button class="tab" data-tab="6m" type="button">6 months</button>
-      <button class="tab" data-tab="1y" type="button">1 year</button>
-      <button class="tab" data-tab="2y" type="button">2 years</button>
-      <button class="tab" data-tab="3y" type="button">3 years</button>
     </div>
 
     <div class="rowBtns">
@@ -850,7 +815,6 @@
     box.textContent=msg;
   }
 
-  // Withdraw list
   const withdrawListEl = $("withdrawList");
   const addWithdrawBtn = $("addWithdrawBtn");
 
@@ -859,7 +823,7 @@
     addWithdrawBtn.disabled = count >= 10;
   }
 
-  function createWithdrawRow(value=""){
+  function createDateRow(value="", onRemove){
     const wrap = document.createElement("div");
     wrap.className = "withdrawItem";
 
@@ -873,38 +837,38 @@
     del.textContent = "X";
     del.addEventListener("click", () => {
       wrap.remove();
-      syncWithdrawMeta();
-      calculate();
+      if(typeof onRemove === "function") onRemove();
     });
+
+    input.addEventListener("change", calculate);
 
     wrap.appendChild(input);
     wrap.appendChild(del);
-    input.addEventListener("change", calculate);
     return wrap;
   }
 
-  function getWithdrawDates(){
-    const inputs = Array.from(withdrawListEl.querySelectorAll('input[type="date"]'));
+  function getDatesFromList(listEl){
+    const inputs = Array.from(listEl.querySelectorAll('input[type="date"]'));
     const dates = inputs.map(i => i.value).filter(Boolean);
     return Array.from(new Set(dates)).sort();
   }
-  function getWithdrawSet(){ return new Set(getWithdrawDates()); }
+  function getSetFromList(listEl){ return new Set(getDatesFromList(listEl)); }
 
   $("addWithdrawBtn").addEventListener("click", () => {
     const count = withdrawListEl.querySelectorAll('input[type="date"]').length;
     if(count >= 10) return;
-    withdrawListEl.appendChild(createWithdrawRow(""));
+    withdrawListEl.appendChild(createDateRow("", ()=>{ syncWithdrawMeta(); calculate(); }));
     syncWithdrawMeta();
   });
 
   $("clearWithdrawBtn").addEventListener("click", () => {
     withdrawListEl.innerHTML = "";
-    withdrawListEl.appendChild(createWithdrawRow(""));
+    withdrawListEl.appendChild(createDateRow("", ()=>{ syncWithdrawMeta(); calculate(); }));
     syncWithdrawMeta();
     calculate();
   });
 
-  // Reinvest list
+  // Reinvest
   const reinvestListEl = $("reinvestList");
   const addReinvestBtn = $("addReinvestBtn");
 
@@ -913,126 +877,17 @@
     addReinvestBtn.disabled = count >= 10;
   }
 
-  function createReinvestRow(value=""){
-    const wrap = document.createElement("div");
-    wrap.className = "withdrawItem";
-
-    const input = document.createElement("input");
-    input.type = "date";
-    input.value = value;
-
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "xBtn";
-    del.textContent = "X";
-    del.addEventListener("click", () => {
-      wrap.remove();
-      syncReinvestMeta();
-      calculate();
-    });
-
-    wrap.appendChild(input);
-    wrap.appendChild(del);
-    input.addEventListener("change", calculate);
-    return wrap;
-  }
-
-  function getReinvestDates(){
-    const inputs = Array.from(reinvestListEl.querySelectorAll('input[type="date"]'));
-    const dates = inputs.map(i => i.value).filter(Boolean);
-    return Array.from(new Set(dates)).sort();
-  }
-  function getReinvestSet(){ return new Set(getReinvestDates()); }
-
   $("addReinvestBtn").addEventListener("click", () => {
     const count = reinvestListEl.querySelectorAll('input[type="date"]').length;
     if(count >= 10) return;
-    reinvestListEl.appendChild(createReinvestRow(""));
+    reinvestListEl.appendChild(createDateRow("", ()=>{ syncReinvestMeta(); calculate(); }));
     syncReinvestMeta();
   });
 
   $("clearReinvestBtn").addEventListener("click", () => {
     reinvestListEl.innerHTML = "";
-    reinvestListEl.appendChild(createReinvestRow(""));
+    reinvestListEl.appendChild(createDateRow("", ()=>{ syncReinvestMeta(); calculate(); }));
     syncReinvestMeta();
-    calculate();
-  });
-
-  // Top-ups list
-  const topupListEl = $("topupList");
-  const addTopupBtn = $("addTopupBtn");
-
-  function syncTopupMeta(){
-    const count = topupListEl.querySelectorAll('.topupItem').length;
-    addTopupBtn.disabled = count >= 20;
-  }
-
-  function createTopupRow({date="", amount=""} = {}){
-    const wrap = document.createElement("div");
-    wrap.className = "topupItem";
-
-    const dateInput = document.createElement("input");
-    dateInput.type = "date";
-    dateInput.value = date;
-
-    const amountInput = document.createElement("input");
-    amountInput.type = "text";
-    amountInput.inputMode = "decimal";
-    amountInput.placeholder = "Amount";
-    amountInput.value = amount;
-
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "xBtn";
-    del.textContent = "X";
-    del.addEventListener("click", () => {
-      wrap.remove();
-      syncTopupMeta();
-      calculate();
-    });
-
-    dateInput.addEventListener("change", calculate);
-    amountInput.addEventListener("input", calculate);
-
-    wrap.appendChild(dateInput);
-    wrap.appendChild(amountInput);
-    wrap.appendChild(del);
-    return wrap;
-  }
-
-  function getTopups(){
-    const rows = Array.from(topupListEl.querySelectorAll(".topupItem"));
-    const list = rows.map(r=>{
-      const inputs = r.querySelectorAll("input");
-      const date = inputs[0]?.value || "";
-      const amount = toNum(inputs[1]?.value || "");
-      return { date, amount };
-    }).filter(x => x.date && Number.isFinite(x.amount) && x.amount > 0);
-
-    const map = new Map();
-    for(const t of list){
-      map.set(t.date, (map.get(t.date) || 0) + t.amount);
-    }
-    return Array.from(map.entries()).map(([date, amount])=>({date, amount})).sort((a,b)=>a.date.localeCompare(b.date));
-  }
-
-  function getTopupMap(){
-    const map = new Map();
-    for(const t of getTopups()) map.set(t.date, t.amount);
-    return map;
-  }
-
-  $("addTopupBtn").addEventListener("click", () => {
-    const count = topupListEl.querySelectorAll(".topupItem").length;
-    if(count >= 20) return;
-    topupListEl.appendChild(createTopupRow());
-    syncTopupMeta();
-  });
-
-  $("clearTopupBtn").addEventListener("click", () => {
-    topupListEl.innerHTML = "";
-    topupListEl.appendChild(createTopupRow());
-    syncTopupMeta();
     calculate();
   });
 
@@ -1143,6 +998,12 @@
     return { ccy: $("currency").value, dep, flow, extra, ecrRate, ecr, multPct };
   }
 
+  // IMPORTANT: reinvest day has reward.
+  // Reinvest happens at start of day (before reward):
+  // 1) wallet -> flow with multiplier
+  // 2) wallet resets to 0
+  // 3) rate resets to 0.30 (rateIndex = 1)
+  // 4) reward is paid that day (if not Sunday)
   function buildSchedule({
     flowAmount,
     multPct,
@@ -1152,7 +1013,6 @@
     startNextDay,
     withdrawSet,
     reinvestSet,
-    topupMap,
     endExclusive,
     bonusStopAfterMonths = 3
   }){
@@ -1162,23 +1022,13 @@
 
     let currentFlow = Number(flowAmount);
     if(!Number.isFinite(currentFlow) || currentFlow <= 0){
-      return {
-        rows: [],
-        walletEnd: 0,
-        totalAccrued: 0,
-        totalWithdrawn: 0,
-        totalReinvested: 0,
-        totalTopups: 0,
-        paidDays: 0
-      };
+      return { rows: [], walletEnd: 0, totalAccrued: 0, totalWithdrawn: 0, paidDays: 0 };
     }
 
     let rateIndex = 1;
     let wallet = 0;
     let totalAccrued = 0;
     let totalWithdrawn = 0;
-    let totalReinvested = 0;
-    let totalTopups = 0;
     let paidDays = 0;
 
     for(let d=new Date(startDate); d<endExclusive; d=addDays(d,1)){
@@ -1186,71 +1036,54 @@
       const isSunday = d.getDay()===0;
       const isWithdraw = withdrawSet.has(dateStr);
       const isReinvest = reinvestSet.has(dateStr);
-      const topupAmt = topupMap.get(dateStr) || 0;
 
-      let ratePct = 0, reward = 0;
-      let note = "";
+      let ratePct = 0, reward = 0, note = "";
 
-      // Top-up applies at day start (even if Sunday)
-      if(Number.isFinite(topupAmt) && topupAmt > 0){
-        const addFlow = topupAmt * (multPct/100);
-        currentFlow += addFlow;
-        totalTopups += topupAmt;
-        note = `Top-up +${fmt(topupAmt,8)} (adds to flow with multiplier)`;
-      }
-
-      let skipRewardToday = false;
-
-      // Withdraw: wallet reset + rate reset + NO reward today
+      // Withdraw: wallet resets, rate resets, no reward today
       if(isWithdraw){
         totalWithdrawn += wallet;
         wallet = 0;
         rateIndex = 1;
-        skipRewardToday = true;
+        note = "Withdraw: reset (no reward today)";
+      } else {
+        // Reinvest at day start (reward still allowed later today)
+        if(isReinvest){
+          const reinvestBase = wallet;
+          if(reinvestBase > 0){
+            const addFlow = reinvestBase * (multPct/100);
+            currentFlow += addFlow;
+          }
+          wallet = 0;
 
-        note = note ? (note + " | Withdraw: reset (no reward today)") : "Withdraw: reset (no reward today)";
-      }
+          // ставка падає до 0.30
+          rateIndex = 1;
 
-      // Reinvest: wallet -> flow with multiplier + rate reset to 0.3, BUT reward today IS allowed (if not Sunday)
-      if(!isWithdraw && isReinvest){
-        const reinvestBase = wallet;
-        const addFlow = reinvestBase * (multPct/100);
+          note = `Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier, rate reset)`;
+        }
 
-        currentFlow += addFlow;
-        totalReinvested += reinvestBase;
+        if(isSunday){
+          note = note ? (note + " | Sunday: no reward") : "Sunday: no reward";
+        } else {
+          const flowBefore = currentFlow;
+          const canGrowBonusToday = (d < bonusStopDate);
 
-        wallet = 0;
+          // rate for today (after possible reinvest reset)
+          ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
+          reward = flowBefore * (ratePct / 100);
 
-        // ставка падає до 0.3 і далі росте по 0.01 як завжди
-        rateIndex = 1;
+          wallet += reward;
+          totalAccrued += reward;
+          paidDays += 1;
 
-        note = note
-          ? (note + ` | Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier)`)
-          : `Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier)`;
-      }
+          currentFlow = flowBefore - reward;
 
-      if(isSunday){
-        note = note ? (note + " | Sunday: no reward") : "Sunday: no reward";
-      }
-      else if(!skipRewardToday){
-        const flowBefore = currentFlow;
-        const canGrowBonusToday = (d < bonusStopDate);
+          note = note
+            ? (note + (canGrowBonusToday ? " | Paid day" : " | Paid day (bonus stopped)"))
+            : (canGrowBonusToday ? "Paid day" : "Paid day (bonus stopped)");
 
-        ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
-        reward = flowBefore * (ratePct / 100);
-
-        wallet += reward;
-        totalAccrued += reward;
-        paidDays += 1;
-
-        currentFlow = flowBefore - reward;
-
-        note = note
-          ? (note + (canGrowBonusToday ? " | Paid day" : " | Paid day (bonus stopped)"))
-          : (canGrowBonusToday ? "Paid day" : "Paid day (bonus stopped)");
-
-        if(canGrowBonusToday){
-          rateIndex += 1;
+          if(canGrowBonusToday){
+            rateIndex += 1;
+          }
         }
       }
 
@@ -1265,7 +1098,7 @@
       });
     }
 
-    return { rows, walletEnd: wallet, totalAccrued, totalWithdrawn, totalReinvested, totalTopups, paidDays };
+    return { rows, walletEnd: wallet, totalAccrued, totalWithdrawn, paidDays };
   }
 
   function renderTable(rows, currency){
@@ -1311,9 +1144,9 @@
     }
 
     const startNextDay = $("startNextDay").checked;
-    const withdrawSet = getWithdrawSet();
-    const reinvestSet = getReinvestSet();
-    const topupMap = getTopupMap();
+
+    const withdrawSet = getSetFromList(withdrawListEl);
+    const reinvestSet = getSetFromList(reinvestListEl);
 
     const activeTab = document.querySelector(".tab.active")?.dataset?.tab || "7";
     const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
@@ -1324,9 +1157,6 @@
     if(activeTab === "30") endExclusive = addDays(startDate, 30);
     if(activeTab === "2m") endExclusive = addMonths(startDate, 2);
     if(activeTab === "6m") endExclusive = addMonths(startDate, 6);
-    if(activeTab === "1y") endExclusive = addMonths(startDate, 12);
-    if(activeTab === "2y") endExclusive = addMonths(startDate, 24);
-    if(activeTab === "3y") endExclusive = addMonths(startDate, 36);
 
     const result = buildSchedule({
       flowAmount: core.flow,
@@ -1337,7 +1167,6 @@
       startNextDay,
       withdrawSet,
       reinvestSet,
-      topupMap,
       endExclusive,
       bonusStopAfterMonths: 3
     });
@@ -1347,20 +1176,14 @@
     $("kpiWrap").style.display = "grid";
     $("kpiFlow").textContent = fmtMoney(core.flow, core.ccy);
 
-    const wdCount = getWithdrawDates().length;
-    const riCount = getReinvestDates().length;
-    const tpCount = getTopups().length;
+    const wdCount = getDatesFromList(withdrawListEl).length;
+    const riCount = getDatesFromList(reinvestListEl).length;
 
     $("kpiMeta").textContent =
-      `Currency: ${core.ccy} | Withdraw: ${wdCount}/10 | Reinvest: ${riCount}/10 | Top-ups: ${tpCount}/20 | Period: ${activeTab}`;
+      `Currency: ${core.ccy} | Withdraw dates: ${wdCount}/10 | Reinvest dates: ${riCount}/10 | Period: ${activeTab}`;
 
     $("kpiWallet").textContent = fmtMoney(result.walletEnd, core.ccy);
-
-    $("kpiWithdrawn").textContent =
-      "Withdrawn: " + fmtMoney(result.totalWithdrawn, core.ccy) +
-      " | Reinvested: " + fmtMoney(result.totalReinvested, core.ccy) +
-      " | Top-ups: " + fmtMoney(result.totalTopups, core.ccy);
-
+    $("kpiWithdrawn").textContent = "Withdrawn: " + fmtMoney(result.totalWithdrawn, core.ccy);
     $("kpiAccrued").textContent = fmtMoney(result.totalAccrued, core.ccy);
     $("kpiDays").textContent = "Paid days: " + result.paidDays;
 
@@ -1377,7 +1200,6 @@
 
     syncWithdrawMeta();
     syncReinvestMeta();
-    syncTopupMeta();
   }
 
   function exportCSV(){
@@ -1484,16 +1306,12 @@
     $("depositDate").value = now.toISOString().slice(0,10);
 
     withdrawListEl.innerHTML = "";
-    withdrawListEl.appendChild(createWithdrawRow(""));
+    withdrawListEl.appendChild(createDateRow("", ()=>{ syncWithdrawMeta(); calculate(); }));
     syncWithdrawMeta();
 
     reinvestListEl.innerHTML = "";
-    reinvestListEl.appendChild(createReinvestRow(""));
+    reinvestListEl.appendChild(createDateRow("", ()=>{ syncReinvestMeta(); calculate(); }));
     syncReinvestMeta();
-
-    topupListEl.innerHTML = "";
-    topupListEl.appendChild(createTopupRow());
-    syncTopupMeta();
 
     syncCurrencyUI();
     syncRegLink();
