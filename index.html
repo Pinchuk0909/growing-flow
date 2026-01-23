@@ -40,11 +40,6 @@
     overflow:hidden;
   }
 
-  /* ===========================
-     TOPBAR (GRID)
-     Title left, Button center, Logo right
-     Text must be in the right block (under logo area)
-     =========================== */
   .topbar{
     display:grid;
     grid-template-columns: 1fr auto 1fr;
@@ -111,7 +106,6 @@
     100% { box-shadow: 0 0 0 rgba(192,0,0,0); transform: translateY(0); }
   }
 
-  /* TEXT PLACEMENT: top right block (under logo) */
   .regTextRow{
     grid-column:3;
     grid-row:2;
@@ -206,12 +200,7 @@
     white-space:nowrap;
   }
 
-  /* ===========================
-     CURRENCY HIGHLIGHT
-     =========================== */
-  #currency{
-    font-weight:900;
-  }
+  #currency{ font-weight:900; }
 
   .currencyField{
     border-radius:14px;
@@ -219,9 +208,7 @@
     border:2px solid var(--black);
     background:var(--white);
   }
-  .currencyField label{
-    margin-top:0;
-  }
+  .currencyField label{ margin-top:0; }
 
   .currencyField.usdt{
     border-color: var(--usdtB);
@@ -421,7 +408,6 @@
     margin-bottom:10px;
   }
 
-  /* Responsive */
   @media (max-width: 900px){
     .grid3{ grid-template-columns: 1fr; }
     .grid2{ grid-template-columns: 1fr; }
@@ -454,9 +440,6 @@
     table{ min-width:820px; }
   }
 
-  /* ===========================
-     INFO BUTTON + WINDOW (CSS)
-     =========================== */
   .ratesHeader{
     display:flex;
     align-items:center;
@@ -531,6 +514,31 @@
     color:var(--black);
   }
   .infoBody b{ font-weight:900; }
+
+  .modeRow{
+    display:flex;
+    gap:10px;
+    margin-top:12px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .modePill{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border:2px solid var(--black);
+    border-radius:999px;
+    padding:8px 12px;
+    font-weight:900;
+    background:var(--white);
+  }
+  .modePill select{
+    width:auto;
+    padding:6px 10px;
+    border-radius:999px;
+    border:2px solid var(--black);
+    font-weight:900;
+  }
 </style>
 </head>
 
@@ -559,8 +567,8 @@
     <div class="grid3">
       <div class="field hasSuffix">
         <label>Deposit</label>
-        <input id="amount" type="text" inputmode="decimal" value="1000" />
-        <span class="suffix" id="depositSuffix">USDT</span>
+        <input id="amount" type="text" inputmode="decimal" value="972" />
+        <span class="suffix" id="depositSuffix">EURO</span>
       </div>
 
       <div class="field">
@@ -568,11 +576,11 @@
         <input id="depositDate" type="date" />
       </div>
 
-      <div class="currencyField usdt" id="currencyField">
+      <div class="currencyField euro" id="currencyField">
         <label>Currency</label>
         <select id="currency">
           <option value="USDT">USDT</option>
-          <option value="EURO">EURO</option>
+          <option value="EURO" selected>EURO</option>
         </select>
       </div>
     </div>
@@ -586,8 +594,8 @@
       <div class="grid3">
         <div class="field hasSuffix">
           <label>ECR rate</label>
-          <input id="ecrRate" type="text" inputmode="decimal" value="816.80" />
-          <span class="suffix" id="fiatSymbol">₮</span>
+          <input id="ecrRate" type="text" inputmode="decimal" value="685.79" />
+          <span class="suffix" id="fiatSymbol">€</span>
         </div>
 
         <div class="field">
@@ -598,7 +606,7 @@
         <div class="field hasSuffix">
           <label>Flow opens on</label>
           <input id="flowOpensOn" type="text" readonly />
-          <span class="suffix" id="flowSuffix">USDT</span>
+          <span class="suffix" id="flowSuffix">EURO</span>
         </div>
       </div>
 
@@ -606,7 +614,7 @@
         <div class="field hasSuffix">
           <label>Extra needed</label>
           <input id="extraNeeded" type="text" inputmode="decimal" />
-          <span class="suffix" id="fiatSymbol2">₮</span>
+          <span class="suffix" id="fiatSymbol2">€</span>
         </div>
 
         <div class="field hasSuffix">
@@ -662,8 +670,16 @@
           </div>
         </div>
 
-        <div style="margin-top:12px;">
-          <label style="display:flex;align-items:center;gap:10px;font-weight:900;">
+        <div class="modeRow">
+          <div class="modePill">
+            Mode
+            <select id="calcMode" title="APP premiums = like app, DEDUCT = subtract rewards from flow">
+              <option value="APP" selected>APP (premiums)</option>
+              <option value="DEDUCT">DEDUCT (your rule)</option>
+            </select>
+          </div>
+
+          <label style="display:flex;align-items:center;gap:10px;font-weight:900;margin:0;">
             <input id="startNextDay" type="checkbox" checked style="width:auto;margin:0;" />
             Start accrual from next day after deposit
           </label>
@@ -680,7 +696,7 @@
         <div class="infoBody">
           <b>Accrual rules</b><br><br>
           Day 1 = 0.3% on opened flow amount.<br>
-          Each paid day +0.01%.<br>
+          Each paid day +0.01% (only first 3 months).<br>
           Sunday: no reward and no +0.01%.<br><br>
           Rewards go to wallet (no reinvest).<br>
           Withdraw resets progress (wallet -> 0, rate progress reset).<br>
@@ -690,11 +706,11 @@
     </div>
 
     <div class="tabs">
-      <button class="tab active" data-tab="7" type="button">7 days</button>
+      <button class="tab" data-tab="7" type="button">7 days</button>
       <button class="tab" data-tab="15" type="button">15 days</button>
       <button class="tab" data-tab="30" type="button">30 days</button>
       <button class="tab" data-tab="2m" type="button">2 months</button>
-      <button class="tab" data-tab="6m" type="button">6 months</button>
+      <button class="tab active" data-tab="6m" type="button">6 months</button>
     </div>
 
     <div class="rowBtns">
@@ -787,7 +803,14 @@
 
   function fmtMoney(n, ccy){
     if(!Number.isFinite(n)) return "0 " + ccy;
-    return fmt(n, 8) + " " + ccy;
+    const digits = (ccy === "EURO") ? 2 : 8;
+    return fmt(n, digits) + " " + ccy;
+  }
+
+  function roundCcy(n, ccy){
+    const digits = (ccy === "EURO") ? 2 : 8;
+    const p = Math.pow(10, digits);
+    return Math.round((n + Number.EPSILON) * p) / p;
   }
 
   function weekdayName(d){ return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]; }
@@ -839,6 +862,7 @@
     del.addEventListener("click", () => {
       wrap.remove();
       syncWithdrawMeta();
+      calculate();
     });
 
     wrap.appendChild(input);
@@ -864,6 +888,7 @@
     withdrawListEl.innerHTML = "";
     withdrawListEl.appendChild(createWithdrawRow(""));
     syncWithdrawMeta();
+    calculate();
   });
 
   function fillMultiplierOptions(){
@@ -973,83 +998,103 @@
     return { ccy: $("currency").value, dep, flow, extra, ecrRate, ecr };
   }
 
+  /*
+    MODE:
+    APP    = premiums like app (flow does not decrease)
+    DEDUCT = your rule (reward decreases current flow)
+  */
   function buildSchedule({
-  flowAmount,
-  depositDate,
-  startRatePct,
-  rateStepPct,
-  startNextDay,
-  withdrawSet,
-  endExclusive,
-  bonusStopAfterMonths = 3
-}){
-  const rows=[];
-  const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
-  const bonusStopDate = addMonths(startDate, bonusStopAfterMonths);
+    currency,
+    flowAmount,
+    depositDate,
+    startRatePct,
+    rateStepPct,
+    startNextDay,
+    withdrawSet,
+    endExclusive,
+    calcMode = "APP",
+    bonusStopAfterMonths = 3
+  }){
+    const rows=[];
+    const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
+    const bonusStopDate = addMonths(startDate, bonusStopAfterMonths);
 
-  let currentFlow = Number(flowAmount);
-  if(!Number.isFinite(currentFlow) || currentFlow <= 0){
-    return { rows: [], walletEnd: 0, totalAccrued: 0, totalWithdrawn: 0, paidDays: 0 };
-  }
+    const openedFlow = Number(flowAmount);
+    let currentFlow = openedFlow;
 
-  let rateIndex = 1;
-  let wallet = 0;
-  let totalAccrued = 0;
-  let totalWithdrawn = 0;
-  let paidDays = 0;
-
-  for(let d=new Date(startDate); d<endExclusive; d=addDays(d,1)){
-    const dateStr = d.toISOString().slice(0,10);
-    const isSunday = d.getDay()===0;
-    const isWithdraw = withdrawSet.has(dateStr);
-
-    let ratePct = 0, reward = 0, note = "";
-
-    if(isWithdraw){
-      totalWithdrawn += wallet;
-      wallet = 0;
-      rateIndex = 1;
-      note = "Withdraw: reset (no reward today)";
-      // currentFlow не змінюємо, бо ти просив тільки списання reward
+    if(!Number.isFinite(currentFlow) || currentFlow <= 0){
+      return { rows: [], walletEnd: 0, totalAccrued: 0, totalWithdrawn: 0, paidDays: 0, flowEnd: 0, openedFlow };
     }
-    else if(isSunday){
-      note = "Sunday: no reward";
-      // currentFlow не змінюється
-    }
-    else{
-      const flowBefore = currentFlow;
 
-      ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
-      reward = flowBefore * (ratePct / 100);
+    let rateIndex = 1;
+    let wallet = 0;
+    let totalAccrued = 0;
+    let totalWithdrawn = 0;
+    let paidDays = 0;
 
-      wallet += reward;
-      totalAccrued += reward;
-      paidDays += 1;
+    for(let d=new Date(startDate); d<endExclusive; d=addDays(d,1)){
+      const dateStr = d.toISOString().slice(0,10);
+      const isSunday = d.getDay()===0;
+      const isWithdraw = withdrawSet.has(dateStr);
 
-      // ✅ списуємо reward з потоку
-      currentFlow = flowBefore - reward;
+      let ratePct = 0, reward = 0, note = "";
 
-      note = "Paid day";
-
-      // ✅ +0.01% тільки перші 3 місяці
-      if(d < bonusStopDate){
-        rateIndex += 1;
+      if(isWithdraw){
+        totalWithdrawn += wallet;
+        wallet = 0;
+        rateIndex = 1;
+        note = "Withdraw: reset (no reward today)";
       }
+      else if(isSunday){
+        note = "Sunday: no reward";
+      }
+      else{
+        ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
+
+        // Base for reward
+        const base = (calcMode === "DEDUCT") ? currentFlow : openedFlow;
+
+        reward = base * (ratePct / 100);
+
+        // Currency rounding (important for matching apps)
+        reward = roundCcy(reward, currency);
+
+        wallet = roundCcy(wallet + reward, currency);
+        totalAccrued = roundCcy(totalAccrued + reward, currency);
+        paidDays += 1;
+
+        if(calcMode === "DEDUCT"){
+          currentFlow = roundCcy(currentFlow - reward, currency);
+          if(currentFlow < 0) currentFlow = 0;
+        }
+
+        note = (calcMode === "DEDUCT") ? "Paid day (deduct)" : "Paid day (app)";
+        if(d < bonusStopDate){
+          rateIndex += 1;
+        }
+      }
+
+      rows.push({
+        date: new Date(d),
+        weekday: weekdayName(d),
+        ratePct,
+        reward,
+        flowAmount: currentFlow,
+        walletEnd: wallet,
+        note
+      });
     }
 
-    rows.push({
-      date: new Date(d),
-      weekday: weekdayName(d),
-      ratePct,
-      reward,
-      flowAmount: currentFlow,   // ✅ ТЕПЕР це залишок після дня
+    return {
+      rows,
       walletEnd: wallet,
-      note
-    });
+      totalAccrued,
+      totalWithdrawn,
+      paidDays,
+      flowEnd: currentFlow,
+      openedFlow
+    };
   }
-
-  return { rows, walletEnd: wallet, totalAccrued, totalWithdrawn, paidDays };
-}
 
   function renderTable(rows, currency){
     const tbody = $("tbody");
@@ -1096,7 +1141,7 @@
     const startNextDay = $("startNextDay").checked;
     const withdrawSet = getWithdrawSet();
 
-    const activeTab = document.querySelector(".tab.active")?.dataset?.tab || "7";
+    const activeTab = document.querySelector(".tab.active")?.dataset?.tab || "6m";
     const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
 
     let endExclusive;
@@ -1106,21 +1151,25 @@
     if(activeTab === "2m") endExclusive = addMonths(startDate, 2);
     if(activeTab === "6m") endExclusive = addMonths(startDate, 6);
 
+    const calcMode = $("calcMode").value;
+
     const result = buildSchedule({
+      currency: core.ccy,
       flowAmount: core.flow,
       depositDate,
       startRatePct,
       rateStepPct,
       startNextDay,
       withdrawSet,
-      endExclusive
+      endExclusive,
+      calcMode
     });
 
     renderTable(result.rows, core.ccy);
 
     $("kpiWrap").style.display = "grid";
     $("kpiFlow").textContent = fmtMoney(core.flow, core.ccy);
-    $("kpiMeta").textContent = `Currency: ${core.ccy} | Withdraw dates: ${getWithdrawDates().length}/10 | Period: ${activeTab}`;
+    $("kpiMeta").textContent = `Currency: ${core.ccy} | Withdraw dates: ${getWithdrawDates().length}/10 | Period: ${activeTab} | Mode: ${calcMode}`;
     $("kpiWallet").textContent = fmtMoney(result.walletEnd, core.ccy);
     $("kpiWithdrawn").textContent = "Withdrawn: " + fmtMoney(result.totalWithdrawn, core.ccy);
     $("kpiAccrued").textContent = fmtMoney(result.totalAccrued, core.ccy);
@@ -1177,6 +1226,7 @@
   $("amount").addEventListener("input", ()=>{
     autoPickMultiplierByDeposit();
     computeEcrBlock();
+    calculate();
   });
 
   $("multiplier").addEventListener("change", ()=>{
@@ -1193,6 +1243,7 @@
   $("startRate").addEventListener("input", calculate);
   $("rateStep").addEventListener("input", calculate);
   $("startNextDay").addEventListener("change", calculate);
+  $("calcMode").addEventListener("change", calculate);
 
   $("resetAutoBtn").addEventListener("click", ()=>{
     fillMultiplierOptions();
@@ -1238,6 +1289,12 @@
     });
   })();
 
+  function fillDefaultMultiplierFor972EUR(){
+    // 972 EUR -> +80% => 180% => opened flow 1749.6
+    // In EURO_TIERS: 500 => bonus 80
+    $("multiplier").value = "180";
+  }
+
   (function init(){
     const now = new Date();
     $("depositDate").value = now.toISOString().slice(0,10);
@@ -1249,7 +1306,10 @@
     syncCurrencyUI();
     syncRegLink();
     fillMultiplierOptions();
-    autoPickMultiplierByDeposit();
+
+    // make the 972 EUR demo match the typical 180% tier
+    fillDefaultMultiplierFor972EUR();
+
     computeEcrBlock();
     calculate();
   })();
