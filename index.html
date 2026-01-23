@@ -634,7 +634,7 @@
 
         <div class="rowBtns">
           <button class="smallBtn red" id="addReinvestBtn" type="button">+ Add date</button>
-          <button class="smallBtn" id="autoReinvest91Btn" type="button">Auto reinvest 91d</button>
+          <button class="smallBtn" id="autoReinvest91Btn" type="button">Auto reinvest every 91 days</button>
           <button class="smallBtn" id="clearReinvestBtn" type="button">Clear</button>
         </div>
 
@@ -876,8 +876,6 @@
   function syncReinvestMeta(){
     const count = reinvestListEl.querySelectorAll('input[type="date"]').length;
     addReinvestBtn.disabled = count >= 10;
-    const autoBtn = $("autoReinvest91Btn");
-    if(autoBtn) autoBtn.disabled = count >= 10;
   }
 
   $("addReinvestBtn").addEventListener("click", () => {
@@ -893,28 +891,6 @@
     syncReinvestMeta();
     calculate();
   });
-
-  function fillReinvestEvery91Days(){
-    const dateVal = $("depositDate").value;
-    const depositDate = parseDateInput(dateVal);
-    if(!depositDate){ showErr("Deposit date is required"); return; }
-
-    const startNextDay = $("startNextDay").checked;
-    const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
-
-    reinvestListEl.innerHTML = "";
-
-    for(let i=1; i<=10; i++){
-      const d = addDays(startDate, 91*i);
-      const iso = d.toISOString().slice(0,10);
-      reinvestListEl.appendChild(createDateRow(iso, ()=>{ syncReinvestMeta(); calculate(); }));
-    }
-
-    syncReinvestMeta();
-    calculate();
-  }
-
-  $("autoReinvest91Btn").addEventListener("click", fillReinvestEvery91Days);
 
   function fillMultiplierOptions(){
     const ccy = $("currency").value;
@@ -1043,6 +1019,7 @@
   }){
     const rows=[];
     const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
+    let bonusStopDate = addMonths(startDate, bonusStopAfterMonths);
 
     let currentFlow = Number(flowAmount);
     if(!Number.isFinite(currentFlow) || currentFlow <= 0){
@@ -1054,8 +1031,6 @@
     let totalAccrued = 0;
     let totalWithdrawn = 0;
     let paidDays = 0;
-
-    let bonusAnchorDate = new Date(startDate);
 
     for(let d=new Date(startDate); d<endExclusive; d=addDays(d,1)){
       const dateStr = d.toISOString().slice(0,10);
@@ -1070,7 +1045,6 @@
         totalWithdrawn += wallet;
         wallet = 0;
         rateIndex = 1;
-        bonusAnchorDate = new Date(d);
         note = "Withdraw: reset (no reward today)";
       } else {
         // Reinvest at day start (reward still allowed later today)
@@ -1085,8 +1059,7 @@
           // ставка падає до 0.30
           rateIndex = 1;
 
-          // reset bonus window anchor so rate can grow again after reinvest
-          bonusAnchorDate = new Date(d);
+          bonusStopDate = addMonths(new Date(d), bonusStopAfterMonths);
 
           note = `Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier, rate reset)`;
         }
@@ -1095,7 +1068,6 @@
           note = note ? (note + " | Sunday: no reward") : "Sunday: no reward";
         } else {
           const flowBefore = currentFlow;
-          const bonusStopDate = addMonths(bonusAnchorDate, bonusStopAfterMonths);
           const canGrowBonusToday = (d < bonusStopDate);
 
           // rate for today (after possible reinvest reset)
@@ -1292,6 +1264,43 @@
     fillMultiplierOptions();
     autoPickMultiplierByDeposit();
     computeEcrBlock();
+    calculate();
+  });
+
+  $("autoReinvest91Btn").addEventListener("click", ()=>{
+    const dateVal = $("depositDate").value;
+    const depositDate = parseDateInput(dateVal);
+    if(!depositDate){
+      showErr("Deposit date is required");
+      return;
+    }
+
+    const startNextDay = $("startNextDay").checked;
+    const activeTab = document.querySelector(".tab.active")?.dataset?.tab || "7";
+    const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
+
+    let endExclusive;
+    if(activeTab === "7") endExclusive = addDays(startDate, 7);
+    if(activeTab === "15") endExclusive = addDays(startDate, 15);
+    if(activeTab === "30") endExclusive = addDays(startDate, 30);
+    if(activeTab === "2m") endExclusive = addMonths(startDate, 2);
+    if(activeTab === "6m") endExclusive = addMonths(startDate, 6);
+
+    const dates = [];
+    for(let d = addDays(startDate, 91); d < endExclusive && dates.length < 10; d = addDays(d, 91)){
+      dates.push(d.toISOString().slice(0,10));
+    }
+
+    reinvestListEl.innerHTML = "";
+    if(dates.length === 0){
+      reinvestListEl.appendChild(createDateRow("", ()=>{ syncReinvestMeta(); calculate(); }));
+    } else {
+      for(const ds of dates){
+        reinvestListEl.appendChild(createDateRow(ds, ()=>{ syncReinvestMeta(); calculate(); }));
+      }
+    }
+
+    syncReinvestMeta();
     calculate();
   });
 
