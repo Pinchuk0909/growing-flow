@@ -1176,79 +1176,71 @@
       };
     }
 
-    let rateIndex = 1;
-    let wallet = 0;
-    let totalAccrued = 0;
-    let totalWithdrawn = 0;
-    let totalReinvested = 0;
-    let totalTopups = 0;
-    let paidDays = 0;
+    let ratePct = 0, reward = 0;
+let note = "";
 
-    for(let d=new Date(startDate); d<endExclusive; d=addDays(d,1)){
-      const dateStr = d.toISOString().slice(0,10);
-      const isSunday = d.getDay()===0;
-      const isWithdraw = withdrawSet.has(dateStr);
-      const isReinvest = reinvestSet.has(dateStr);
-      const topupAmt = topupMap.get(dateStr) || 0;
+// Top-up applies at day start (even if Sunday)
+if(Number.isFinite(topupAmt) && topupAmt > 0){
+  const addFlow = topupAmt * (multPct/100);
+  currentFlow += addFlow;
+  totalTopups += topupAmt;
+  note = `Top-up +${fmt(topupAmt,8)} (adds to flow with multiplier)`;
+}
 
-      let ratePct = 0, reward = 0, note = "";
+let skipRewardToday = false;
 
-      // Top-up applies at day start (even if Sunday)
-      if(Number.isFinite(topupAmt) && topupAmt > 0){
-        const addFlow = topupAmt * (multPct/100);
-        currentFlow += addFlow;
-        totalTopups += topupAmt;
-        note = `Top-up +${fmt(topupAmt,8)} (adds to flow with multiplier)`;
-      }
+// Withdraw: wallet reset + rate reset + NO reward today
+if(isWithdraw){
+  totalWithdrawn += wallet;
+  wallet = 0;
+  rateIndex = 1;
+  skipRewardToday = true;
 
-      if(isWithdraw){
-        totalWithdrawn += wallet;
-        wallet = 0;
+  note = note ? (note + " | Withdraw: reset (no reward today)") : "Withdraw: reset (no reward today)";
+}
 
-        rateIndex = 1;
+// Reinvest: wallet -> flow with multiplier + rate reset to 0.3, BUT reward today IS allowed
+if(!isWithdraw && isReinvest){
+  const reinvestBase = wallet;
+  const addFlow = reinvestBase * (multPct/100);
 
-        note = note ? (note + " | Withdraw: reset (no reward today)") : "Withdraw: reset (no reward today)";
-      }
-      else if(isReinvest){
-        const reinvestBase = wallet;
-        const addFlow = reinvestBase * (multPct/100);
+  currentFlow += addFlow;
+  totalReinvested += reinvestBase;
 
-        currentFlow += addFlow;
-        totalReinvested += reinvestBase;
+  wallet = 0;
 
-        wallet = 0;
-        rateIndex = 1;
+  // ставка падає до 0.3 і далі росте по 0.01 як завжди
+  rateIndex = 1;
 
-        note = note
-          ? (note + ` | Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier, no reward)`)
-          : `Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier, no reward)`;
-      }
-      else if(isSunday){
-        note = note ? (note + " | Sunday: no reward") : "Sunday: no reward";
-      }
-      else{
-        const flowBefore = currentFlow;
-        const canGrowBonusToday = (d < bonusStopDate);
+  note = note
+    ? (note + ` | Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier)`)
+    : `Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier)`;
+}
 
-        ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
-        reward = flowBefore * (ratePct / 100);
+if(isSunday){
+  note = note ? (note + " | Sunday: no reward") : "Sunday: no reward";
+}
+else if(!skipRewardToday){
+  const flowBefore = currentFlow;
+  const canGrowBonusToday = (d < bonusStopDate);
 
-        wallet += reward;
-        totalAccrued += reward;
-        paidDays += 1;
+  ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
+  reward = flowBefore * (ratePct / 100);
 
-        currentFlow = flowBefore - reward;
+  wallet += reward;
+  totalAccrued += reward;
+  paidDays += 1;
 
-        if(!note){
-          note = canGrowBonusToday ? "Paid day" : "Paid day (bonus stopped)";
-        } else {
-          note = note + (canGrowBonusToday ? " | Paid day" : " | Paid day (bonus stopped)");
-        }
+  currentFlow = flowBefore - reward;
 
-        if(canGrowBonusToday){
-          rateIndex += 1;
-        }
-      }
+  note = note
+    ? (note + (canGrowBonusToday ? " | Paid day" : " | Paid day (bonus stopped)"))
+    : (canGrowBonusToday ? "Paid day" : "Paid day (bonus stopped)");
+
+  if(canGrowBonusToday){
+    rateIndex += 1;
+  }
+}
 
       rows.push({
         date: new Date(d),
