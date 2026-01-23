@@ -988,52 +988,53 @@
 
   const bonusStopDate = addMonths(startDate, bonusStopAfterMonths);
 
-  // Початковий відкритий потік
   let currentFlow = Number(flowAmount);
   if(!Number.isFinite(currentFlow) || currentFlow <= 0){
     return { rows: [], walletEnd: 0, totalAccrued: 0, totalWithdrawn: 0, paidDays: 0 };
   }
 
-  let rateIndex=1;
-  let wallet=0;
-  let totalAccrued=0;
-  let totalWithdrawn=0;
-  let paidDays=0;
+  let rateIndex = 1;
+  let wallet = 0;
+  let totalAccrued = 0;
+  let totalWithdrawn = 0;
+  let paidDays = 0;
 
   for(let d=new Date(startDate); d<endExclusive; d=addDays(d,1)){
     const dateStr = d.toISOString().slice(0,10);
     const isSunday = d.getDay()===0;
     const isWithdraw = withdrawSet.has(dateStr);
 
-    let ratePct=0, reward=0, note="";
+    let ratePct = 0, reward = 0, note = "";
+
+    // ✅ фіксуємо потік на початок дня
+    const flowBefore = currentFlow;
 
     if(isWithdraw){
       totalWithdrawn += wallet;
       wallet = 0;
       rateIndex = 1;
       note = "Withdraw: reset (no reward today)";
-    } 
+    }
     else if(isSunday){
       note = "Sunday: no reward";
-    } 
-    else {
-      // Поточна ставка
-      ratePct = startRatePct + (rateIndex-1)*rateStepPct;
+    }
+    else{
+      // ✅ ставка
+      ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
 
-      // Нарахування ВІД ПОТОЧНОГО FLOW
-      reward = currentFlow * (ratePct/100);
+      // ✅ reward від потоку на початок дня
+      reward = flowBefore * (ratePct / 100);
 
-      // Оновлюємо значення
       wallet += reward;
       totalAccrued += reward;
       paidDays += 1;
 
-      // 🔥 ГОЛОВНЕ: зменшуємо потік
-      currentFlow = currentFlow - reward;
+      // ✅ зменшуємо потік після виплати
+      currentFlow = flowBefore - reward;
 
       note = "Paid day";
 
-      // Бонус +0.01% тільки перші 3 місяці
+      // ✅ +0.01% тільки перші 3 місяці (календарні, від старту нарахувань)
       if(d < bonusStopDate){
         rateIndex += 1;
       }
@@ -1044,7 +1045,7 @@
       weekday: weekdayName(d),
       ratePct,
       reward,
-      flowAmount: currentFlow,   // тепер це залишок потоку
+      flowAmount: flowBefore,   // ✅ показуємо базу, від якої рахувався reward
       walletEnd: wallet,
       note
     });
