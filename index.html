@@ -629,11 +629,12 @@
 
         <div class="boxTitle" style="margin:0 0 8px;">Reinvest dates</div>
         <div style="font-size:13px;font-weight:800;">
-          Add up to 10 dates. On reinvest date: wallet goes back into flow with multiplier, wallet resets, rate resets to 0.30 and keeps growing by 0.01 on paid days. Reward is paid that day (if not Sunday).
+          Add up to 10 dates. On reinvest date: wallet goes back into flow with multiplier, wallet resets, rate resets to 0.30 and grows by 0.01 on paid days. Reward is paid that day (if not Sunday).
         </div>
 
         <div class="rowBtns">
           <button class="smallBtn red" id="addReinvestBtn" type="button">+ Add date</button>
+          <button class="smallBtn" id="autoReinvest91Btn" type="button">Auto reinvest every 91 days</button>
           <button class="smallBtn" id="clearReinvestBtn" type="button">Clear</button>
         </div>
 
@@ -678,11 +679,10 @@
           <b>Accrual rules</b><br><br>
           Reward is calculated from the current flow balance.<br>
           After reward, flow balance decreases by reward amount.<br>
-          Daily bonus +0.01% works only for first 3 months from accrual start.<br>
           Sunday: no reward and no bonus increase.<br><br>
           Rewards go to wallet (no reinvest).<br>
           Withdraw resets wallet and rate progress. No reward on that day.<br>
-          Reinvest: wallet -> flow with multiplier, wallet resets, rate resets to 0.30, reward is paid that day (if not Sunday).<br>
+          Reinvest: wallet -> flow with multiplier, wallet resets, rate resets to 0.30, and rate grows by 0.01 on paid days. Reward is paid that day (if not Sunday).<br>
         </div>
       </div>
     </div>
@@ -875,6 +875,7 @@
   function syncReinvestMeta(){
     const count = reinvestListEl.querySelectorAll('input[type="date"]').length;
     addReinvestBtn.disabled = count >= 10;
+    $("autoReinvest91Btn").disabled = false;
   }
 
   $("addReinvestBtn").addEventListener("click", () => {
@@ -998,12 +999,14 @@
     return { ccy: $("currency").value, dep, flow, extra, ecrRate, ecr, multPct };
   }
 
-  // IMPORTANT: reinvest day has reward.
+  // FIX: after reinvest, rate must grow again by +0.01 on paid days
+  // We implement "bonus window" that restarts on reinvest day.
   // Reinvest happens at start of day (before reward):
   // 1) wallet -> flow with multiplier
-  // 2) wallet resets to 0
-  // 3) rate resets to 0.30 (rateIndex = 1)
-  // 4) reward is paid that day (if not Sunday)
+  // 2) wallet = 0
+  // 3) rate reset to 0.30 (rateIndex=1)
+  // 4) bonus growth window resets from reinvest date (so rate can grow again)
+  // 5) reward is paid that day if not Sunday
   function buildSchedule({
     flowAmount,
     multPct,
@@ -1018,7 +1021,9 @@
   }){
     const rows=[];
     const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
-    const bonusStopDate = addMonths(startDate, bonusStopAfterMonths);
+
+    let bonusStartDate = new Date(startDate);
+    let bonusStopDate = addMonths(bonusStartDate, bonusStopAfterMonths);
 
     let currentFlow = Number(flowAmount);
     if(!Number.isFinite(currentFlow) || currentFlow <= 0){
@@ -1039,24 +1044,27 @@
 
       let ratePct = 0, reward = 0, note = "";
 
-      // Withdraw: wallet resets, rate resets, no reward today
       if(isWithdraw){
         totalWithdrawn += wallet;
         wallet = 0;
         rateIndex = 1;
         note = "Withdraw: reset (no reward today)";
       } else {
-        // Reinvest at day start (reward still allowed later today)
         if(isReinvest){
           const reinvestBase = wallet;
+
           if(reinvestBase > 0){
             const addFlow = reinvestBase * (multPct/100);
             currentFlow += addFlow;
           }
-          wallet = 0;
 
-          // ставка падає до 0.30
+          wallet = 0;
           rateIndex = 1;
+
+          // IMPORTANT FIX:
+          // after reinvest we restart growth window so rate can increase again by +0.01
+          bonusStartDate = new Date(d);
+          bonusStopDate = addMonths(bonusStartDate, bonusStopAfterMonths);
 
           note = `Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier, rate reset)`;
         }
@@ -1065,9 +1073,9 @@
           note = note ? (note + " | Sunday: no reward") : "Sunday: no reward";
         } else {
           const flowBefore = currentFlow;
+
           const canGrowBonusToday = (d < bonusStopDate);
 
-          // rate for today (after possible reinvest reset)
           ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
           reward = flowBefore * (ratePct / 100);
 
@@ -1121,6 +1129,53 @@
     });
   }
 
+  function getActiveEndExclusive(depositDate){
+    const startNextDay = $("startNextDay").checked;
+    const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
+    const activeTab = document.querySelector(".tab.active")?.dataset?.tab || "7";
+
+    let endExclusive;
+    if(activeTab === "7") endExclusive = addDays(startDate, 7);
+    if(activeTab === "15") endExclusive = addDays(startDate, 15);
+    if(activeTab === "30") endExclusive = addDays(startDate, 30);
+    if(activeTab === "2m") endExclusive = addMonths(startDate, 2);
+    if(activeTab === "6m") endExclusive = addMonths(startDate, 6);
+
+    return { startDate, endExclusive, activeTab };
+  }
+
+  function setAutoReinvestEvery91Days(){
+    showErr("");
+
+    const dateVal = $("depositDate").value;
+    const depositDate = parseDateInput(dateVal);
+    if(!depositDate){
+      showErr("Deposit date is required");
+      return;
+    }
+
+    const { startDate, endExclusive } = getActiveEndExclusive(depositDate);
+
+    const dates = [];
+    let d = addDays(startDate, 91);
+    while(d < endExclusive && dates.length < 10){
+      dates.push(d.toISOString().slice(0,10));
+      d = addDays(d, 91);
+    }
+
+    reinvestListEl.innerHTML = "";
+    if(dates.length === 0){
+      reinvestListEl.appendChild(createDateRow("", ()=>{ syncReinvestMeta(); calculate(); }));
+    } else {
+      for(const ds of dates){
+        reinvestListEl.appendChild(createDateRow(ds, ()=>{ syncReinvestMeta(); calculate(); }));
+      }
+    }
+
+    syncReinvestMeta();
+    calculate();
+  }
+
   function calculate(){
     const core = computeEcrBlock();
     if(!core) return;
@@ -1148,15 +1203,7 @@
     const withdrawSet = getSetFromList(withdrawListEl);
     const reinvestSet = getSetFromList(reinvestListEl);
 
-    const activeTab = document.querySelector(".tab.active")?.dataset?.tab || "7";
-    const startDate = startNextDay ? addDays(depositDate,1) : new Date(depositDate);
-
-    let endExclusive;
-    if(activeTab === "7") endExclusive = addDays(startDate, 7);
-    if(activeTab === "15") endExclusive = addDays(startDate, 15);
-    if(activeTab === "30") endExclusive = addDays(startDate, 30);
-    if(activeTab === "2m") endExclusive = addMonths(startDate, 2);
-    if(activeTab === "6m") endExclusive = addMonths(startDate, 6);
+    const { endExclusive, activeTab } = getActiveEndExclusive(depositDate);
 
     const result = buildSchedule({
       flowAmount: core.flow,
@@ -1263,6 +1310,8 @@
     computeEcrBlock();
     calculate();
   });
+
+  $("autoReinvest91Btn").addEventListener("click", setAutoReinvestEvery91Days);
 
   document.querySelectorAll(".tab").forEach(btn=>{
     btn.addEventListener("click", ()=>{
