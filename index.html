@@ -626,7 +626,6 @@
       <div class="error" id="errBox"></div>
     </div>
 
-    <!-- Withdraw + Reinvest -->
     <div class="grid2" style="margin-top:14px;">
       <div class="box">
         <div class="boxTitle">Withdraw dates</div>
@@ -645,7 +644,7 @@
       <div class="box">
         <div class="boxTitle">Reinvest dates</div>
         <div style="font-size:13px;font-weight:800;">
-          Add up to 10 dates. On reinvest date: wallet goes back into flow with the same multiplier, wallet resets, rate progress resets. No reward on that day.
+          Add up to 10 dates. On reinvest date: wallet goes back into flow with the same multiplier, wallet resets, rate resets to 0.3 and then grows daily as usual. Reward is still paid that day (if not Sunday).
         </div>
 
         <div class="rowBtns">
@@ -657,7 +656,6 @@
       </div>
     </div>
 
-    <!-- Rates + Top-ups -->
     <div class="grid2" style="margin-top:14px;">
       <div class="box">
         <div class="ratesHeader">
@@ -689,7 +687,7 @@
       <div class="box">
         <div class="boxTitle">Flow top-ups</div>
         <div style="font-size:13px;font-weight:800;">
-          Add up to 20 top-ups. On top-up date: amount is added into flow with the same multiplier. Reward still follows normal rules (except Sundays, withdraw, reinvest).
+          Add up to 20 top-ups. On top-up date: amount is added into flow with the same multiplier.
         </div>
 
         <div class="rowBtns">
@@ -714,9 +712,9 @@
           Daily bonus +0.01% works only for first 3 months from accrual start.<br>
           Sunday: no reward and no bonus increase.<br><br>
           Rewards go to wallet (no reinvest by default).<br>
-          Withdraw: wallet resets and rate progress resets. No reward on that day.<br>
-          Reinvest: wallet moves back into flow with multiplier, wallet resets and rate progress resets. No reward on that day.<br>
-          Top-up: adds amount into flow with multiplier. Reward follows normal rules.
+          Withdraw resets wallet and rate progress. No reward on that day.<br>
+          Reinvest: wallet -> flow with multiplier, wallet resets, rate resets to 0.3 and continues growing daily. Reward is paid that day (if not Sunday).<br>
+          Top-up: adds amount into flow with multiplier.
         </div>
       </div>
     </div>
@@ -960,7 +958,7 @@
     calculate();
   });
 
-  // Top-ups list (date + amount)
+  // Top-ups list
   const topupListEl = $("topupList");
   const addTopupBtn = $("addTopupBtn");
 
@@ -1011,7 +1009,6 @@
       return { date, amount };
     }).filter(x => x.date && Number.isFinite(x.amount) && x.amount > 0);
 
-    // merge by date (sum)
     const map = new Map();
     for(const t of list){
       map.set(t.date, (map.get(t.date) || 0) + t.amount);
@@ -1176,71 +1173,86 @@
       };
     }
 
-    let ratePct = 0, reward = 0;
-let note = "";
+    let rateIndex = 1;
+    let wallet = 0;
+    let totalAccrued = 0;
+    let totalWithdrawn = 0;
+    let totalReinvested = 0;
+    let totalTopups = 0;
+    let paidDays = 0;
 
-// Top-up applies at day start (even if Sunday)
-if(Number.isFinite(topupAmt) && topupAmt > 0){
-  const addFlow = topupAmt * (multPct/100);
-  currentFlow += addFlow;
-  totalTopups += topupAmt;
-  note = `Top-up +${fmt(topupAmt,8)} (adds to flow with multiplier)`;
-}
+    for(let d=new Date(startDate); d<endExclusive; d=addDays(d,1)){
+      const dateStr = d.toISOString().slice(0,10);
+      const isSunday = d.getDay()===0;
+      const isWithdraw = withdrawSet.has(dateStr);
+      const isReinvest = reinvestSet.has(dateStr);
+      const topupAmt = topupMap.get(dateStr) || 0;
 
-let skipRewardToday = false;
+      let ratePct = 0, reward = 0;
+      let note = "";
 
-// Withdraw: wallet reset + rate reset + NO reward today
-if(isWithdraw){
-  totalWithdrawn += wallet;
-  wallet = 0;
-  rateIndex = 1;
-  skipRewardToday = true;
+      // Top-up applies at day start (even if Sunday)
+      if(Number.isFinite(topupAmt) && topupAmt > 0){
+        const addFlow = topupAmt * (multPct/100);
+        currentFlow += addFlow;
+        totalTopups += topupAmt;
+        note = `Top-up +${fmt(topupAmt,8)} (adds to flow with multiplier)`;
+      }
 
-  note = note ? (note + " | Withdraw: reset (no reward today)") : "Withdraw: reset (no reward today)";
-}
+      let skipRewardToday = false;
 
-// Reinvest: wallet -> flow with multiplier + rate reset to 0.3, BUT reward today IS allowed
-if(!isWithdraw && isReinvest){
-  const reinvestBase = wallet;
-  const addFlow = reinvestBase * (multPct/100);
+      // Withdraw: wallet reset + rate reset + NO reward today
+      if(isWithdraw){
+        totalWithdrawn += wallet;
+        wallet = 0;
+        rateIndex = 1;
+        skipRewardToday = true;
 
-  currentFlow += addFlow;
-  totalReinvested += reinvestBase;
+        note = note ? (note + " | Withdraw: reset (no reward today)") : "Withdraw: reset (no reward today)";
+      }
 
-  wallet = 0;
+      // Reinvest: wallet -> flow with multiplier + rate reset to 0.3, BUT reward today IS allowed (if not Sunday)
+      if(!isWithdraw && isReinvest){
+        const reinvestBase = wallet;
+        const addFlow = reinvestBase * (multPct/100);
 
-  // ставка падає до 0.3 і далі росте по 0.01 як завжди
-  rateIndex = 1;
+        currentFlow += addFlow;
+        totalReinvested += reinvestBase;
 
-  note = note
-    ? (note + ` | Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier)`)
-    : `Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier)`;
-}
+        wallet = 0;
 
-if(isSunday){
-  note = note ? (note + " | Sunday: no reward") : "Sunday: no reward";
-}
-else if(!skipRewardToday){
-  const flowBefore = currentFlow;
-  const canGrowBonusToday = (d < bonusStopDate);
+        // ставка падає до 0.3 і далі росте по 0.01 як завжди
+        rateIndex = 1;
 
-  ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
-  reward = flowBefore * (ratePct / 100);
+        note = note
+          ? (note + ` | Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier)`)
+          : `Reinvest ${fmt(reinvestBase,8)} (wallet->flow with multiplier)`;
+      }
 
-  wallet += reward;
-  totalAccrued += reward;
-  paidDays += 1;
+      if(isSunday){
+        note = note ? (note + " | Sunday: no reward") : "Sunday: no reward";
+      }
+      else if(!skipRewardToday){
+        const flowBefore = currentFlow;
+        const canGrowBonusToday = (d < bonusStopDate);
 
-  currentFlow = flowBefore - reward;
+        ratePct = startRatePct + (rateIndex - 1) * rateStepPct;
+        reward = flowBefore * (ratePct / 100);
 
-  note = note
-    ? (note + (canGrowBonusToday ? " | Paid day" : " | Paid day (bonus stopped)"))
-    : (canGrowBonusToday ? "Paid day" : "Paid day (bonus stopped)");
+        wallet += reward;
+        totalAccrued += reward;
+        paidDays += 1;
 
-  if(canGrowBonusToday){
-    rateIndex += 1;
-  }
-}
+        currentFlow = flowBefore - reward;
+
+        note = note
+          ? (note + (canGrowBonusToday ? " | Paid day" : " | Paid day (bonus stopped)"))
+          : (canGrowBonusToday ? "Paid day" : "Paid day (bonus stopped)");
+
+        if(canGrowBonusToday){
+          rateIndex += 1;
+        }
+      }
 
       rows.push({
         date: new Date(d),
